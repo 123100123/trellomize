@@ -41,13 +41,13 @@ class User:
     @property
     def getProjects(self):
         return self.projects
-    
-    @getProjects.setter
+
     def addProject(self,newProject):
-        self.projects.append(newProject)
+        if newProject.id not in self.projects.id :
+            self.projects.append(newProject)
     
     def removeProject(self,delproject):
-        if delproject in self.projects:
+        if delproject.id in self.projects.id:
             self.projects.remove(delproject)
         else :
             return False
