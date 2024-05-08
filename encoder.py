@@ -17,12 +17,12 @@ class Encoder:
     def __init__(self) -> None:
         self.__read_key()
 
-    def encrypt(self, entry: str) -> bytes:
+    def encrypt(self, entry: str) -> str:
         f = Fernet(self.__key)
         encrypted = f.encrypt(entry.encode())
-        return encrypted
+        return encrypted.decode()
 
-    def decrypt(self, entry: bytes) -> str:
+    def decrypt(self, entry: str) -> str:
         f = Fernet(self.__key)
-        decrypted = f.decrypt(entry)
+        decrypted = f.decrypt(entry.encode())
         return decrypted.decode()
