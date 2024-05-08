@@ -1,53 +1,53 @@
 class User:
-    def __init__(self,username,password,email,enabled,projects) -> None:
-        self.username = username
-        self.password = password
-        self.email = email
-        self.enabled = enabled
-        self.projects = projects if projects else []
-    
-    @property
-    def getUsername(self):
-        return self.username
-    
-    @getUsername.setter
-    def setUsername(self,newUsername):
-        self.username = newUsername
+    def __init__(self, username, password, email, enabled, projects) -> None:
+        self.__username = username
+        self.__password = password
+        self.__email = email
+        self.__enabled = enabled
+        self.__projects = projects if projects else []
 
     @property
-    def getPassword(self):
-        return self.password
-    
-    @getPassword.setter
-    def setPassword(self,newPassword):
-        self.password = newPassword
+    def get_username(self):
+        return self.__username
+
+    @get_username.setter
+    def set_username(self, new_username):
+        self.__username = new_username
 
     @property
-    def getEmail(self):
-        return self.email
-    
-    @getEmail.setter
-    def setEmail(self,newEmail):
-        self.email = newEmail
+    def get_password(self):
+        return self.__password
+
+    @get_password.setter
+    def set_password(self, new_password):
+        self.__password = new_password
 
     @property
-    def getEnabled(self):
-        return self.enabled
-    
-    @getEnabled.setter
-    def setEnabled(self,newEnabled):
-        self.enabled = newEnabled
-    
-    @property
-    def getProjects(self):
-        return self.projects
+    def get_email(self):
+        return self.__email
 
-    def addProject(self,newProject):
-        if newProject.id not in self.projects.id :
-            self.projects.append(newProject)
-    
-    def removeProject(self,delproject):
-        if delproject.id in self.projects.id:
-            self.projects.remove(delproject)
-        else :
+    @get_email.setter
+    def set_email(self, new_email):
+        self.__email = new_email
+
+    @property
+    def get_enabled(self):
+        return self.__enabled
+
+    @get_enabled.setter
+    def set_enabled(self, new_enabled):
+        self.__enabled = new_enabled
+
+    @property
+    def get_projects(self):
+        return self.__projects
+
+    def add_project(self, new_project):
+        if new_project.id not in self.__projects.id:
+            self.__projects.append(new_project)
+
+    def remove_project(self, del_project):
+        if del_project.id in self.__projects.id:
+            self.__projects.remove(del_project)
+        else:
             return False

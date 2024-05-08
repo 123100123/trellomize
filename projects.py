@@ -1,37 +1,37 @@
 class Project:
-    def __init__(self,name,id,tasks,users,leader) :
-        self.name = name
-        self.id = id
-        self.leader = leader
-        self.tasks = tasks if tasks else []
-        self.users = users if users else []
-    
-    @property
-    def getName(self):
-        return self.name
-    
-    @getName.setter
-    def setName(self,newName):
-        self.name = newName
+    def __init__(self, name, id, tasks, users, leader):
+        self.__name = name
+        self.__id = id
+        self.__leader = leader
+        self.__tasks = tasks if tasks else []
+        self.__users = users if users else []
 
     @property
-    def getLeader(self):
-        return self.leader
-    
+    def get_name(self):
+        return self.__name
+
+    @get_name.setter
+    def set_name(self, new_name):
+        self.__name = new_name
+
     @property
-    def getId(self):
-        return self.id
-    
+    def get_leader(self):
+        return self.__leader
+
     @property
-    def getUsers(self):
-        return self.users
-    
-    def addUser(self,newUser):
-        if newUser.username not in self.users.username :
-            self.users.append(newUser)
-    
-    def removeUser(self,delUser):
-        if delUser.username in self.users.username:
-            self.users.remove(delUser)
-        else :
+    def get_id(self):
+        return self.__id
+
+    @property
+    def get_users(self):
+        return self.__users
+
+    def add_user(self, new_user):
+        if new_user.username not in self.__users.username:
+            self.__users.append(new_user)
+
+    def remove_user(self, del_user):
+        if del_user.username in self.__users.username:
+            self.__users.remove(del_user)
+        else:
             return False
