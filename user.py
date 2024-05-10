@@ -1,4 +1,7 @@
-from Controller import UserController
+import json
+import re
+import os
+
 
 class User:
     def __init__(
@@ -25,7 +28,6 @@ class User:
             return False
         self.__username = new_username
         return True
-        
 
     @property
     def password(self) -> str:
@@ -62,19 +64,87 @@ class User:
         return self.__projects
 
     def add_project(self, project_id: str) -> None:
-        if project_id  in self.__projects:
+        if project_id in self.__projects:
             self.__projects.append(project_id)
 
     def remove_project(self, project_id: str) -> None:
         if project_id in self.__projects.id:
             self.__projects.remove(project_id)
-    
+
     def get_dict(self) -> dict:
         dic = {
-            "username" : self.username,
-            "password" : self.password,
-            "email" : self.email,
-            "enabled" : self.enabled,
-            "projects": self.projects
+            "username": self.username,
+            "password": self.password,
+            "email": self.email,
+            "enabled": self.enabled,
+            "projects": self.projects,
         }
         return dic
+
+
+# all the data saving and reading should be encrypted in future
+class UserController:
+    @staticmethod
+    def create_base_file():
+        if not os.path.exists("users.json"):
+            base_dict = {"users": []}
+            with open("users.json", "w") as file:
+                json.dump(base_dict, file)
+
+    @staticmethod
+    def get_users() -> list:
+        UserController.create_base_file()
+
+        with open("users.json", "r") as file:
+            users_data = json.load(file)["users"]
+            users = [User(**user_data) for user_data in users_data]
+            return users
+
+    @staticmethod
+    def save_users(users: list[User]):
+        data = {"users": [user.get_dict() for user in users]}
+
+        with open("users.json", "w") as file:
+            json.dump(data, file)
+
+    @staticmethod
+    def add_user(user: User) -> bool:
+        users = UserController.get_users()
+        if UserController.exists(user.username):
+            return False
+        users.append(user)
+        UserController.save_users(users)
+        return True
+
+    @staticmethod
+    def remove_user(user: User) -> bool:
+        users = UserController.get_users()
+        usernames = [_user.username for _user in users]
+        if user.username not in usernames:
+            return False
+        users.pop(usernames.index(user.username))
+        UserController.save_users(users)
+        return True
+
+    @staticmethod
+    def exists(username: str) -> bool:
+        users = UserController.get_users()
+        usernames = [_user.username for _user in users]
+        return username in usernames
+
+    @staticmethod
+    def upadate_user(user: str) -> bool:
+        if not UserController.exists(user.username):
+            return False
+        UserController.remove_user(user)
+        UserController.add_user(user)
+
+    @staticmethod
+    def email_check(email: str) -> bool:
+        pattern = r"^[a-zA-Z0-9.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$"
+
+        return re.match(pattern, email) is not None
+
+    @staticmethod
+    def password_check(password: str) -> bool:
+        return len(password >= 8)
