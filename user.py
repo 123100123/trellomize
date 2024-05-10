@@ -1,53 +1,80 @@
+from Controller import UserController
+
 class User:
-    def __init__(self, username, password, email, enabled, projects) -> None:
+    def __init__(
+        self,
+        username: str,
+        password: str,
+        email: str,
+        enabled: bool,
+        projects: list[str],
+    ) -> None:
         self.__username = username
         self.__password = password
         self.__email = email
         self.__enabled = enabled
-        self.__projects = projects if projects else []
+        self.__projects = projects
 
     @property
-    def get_username(self):
+    def username(self) -> str:
         return self.__username
 
-    @get_username.setter
-    def set_username(self, new_username):
+    @username.setter
+    def username(self, new_username: str) -> bool:
+        if UserController.exists(new_username):
+            return False
         self.__username = new_username
+        return True
+        
 
     @property
-    def get_password(self):
+    def password(self) -> str:
         return self.__password
 
-    @get_password.setter
-    def set_password(self, new_password):
+    @password.setter
+    def password(self, new_password: str) -> bool:
+        if not UserController.password_check(new_password):
+            return False
         self.__password = new_password
+        return True
 
     @property
-    def get_email(self):
+    def email(self) -> str:
         return self.__email
 
-    @get_email.setter
-    def set_email(self, new_email):
+    @email.setter
+    def email(self, new_email: str) -> bool:
+        if not UserController.email_check(new_email):
+            return False
         self.__email = new_email
+        return True
 
     @property
-    def get_enabled(self):
+    def enabled(self):
         return self.__enabled
 
-    @get_enabled.setter
-    def set_enabled(self, new_enabled):
+    @enabled.setter
+    def enabled(self, new_enabled: bool) -> None:
         self.__enabled = new_enabled
 
     @property
-    def get_projects(self):
+    def projects(self):
         return self.__projects
 
-    def add_project(self, new_project):
-        if new_project.id not in self.__projects.id:
-            self.__projects.append(new_project)
+    def add_project(self, project_id: str) -> None:
+        if project_id  in self.__projects:
+            self.__projects.append(project_id)
 
-    def remove_project(self, del_project):
-        if del_project.id in self.__projects.id:
-            self.__projects.remove(del_project)
-        else:
-            return False
+    def remove_project(self, project_id: str) -> None:
+        if project_id in self.__projects.id:
+            self.__projects.remove(project_id)
+    
+    def get_dict(self) -> dict:
+        dic = {
+            "username" : self.username,
+            "password" : self.password,
+            "email" : self.email,
+            "enabled" : self.enabled,
+            "projects": self.projects
+        }
+        return dic
