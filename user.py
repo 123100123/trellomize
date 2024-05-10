@@ -2,7 +2,6 @@ import json
 import re
 import os
 
-
 class User:
     def __init__(
         self,
