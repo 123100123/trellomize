@@ -1,11 +1,9 @@
-from user import UserController
-from user import User
 class Project:
     def __init__(
         self,
         name: str,
         id: str,
-        tasks: list[str],
+        tasks: list[Task],
         users: list[str],
         leader: str,
     ) -> None:
@@ -20,8 +18,11 @@ class Project:
         return self.__name
 
     @name.setter
-    def name(self, new_name: str) -> None:
+    def name(self, new_name: str) -> bool:
+        if ProjectController.exists(new_name):
+            return False
         self.__name = new_name
+        return True
 
     @property
     def leader(self) -> str:
@@ -33,21 +34,29 @@ class Project:
 
     @property
     def users(self) -> list[str]:
-        return [user.username for user in UserController.get_users()]
+        return self.__users
 
-    def add_user(self, new_user: User) -> bool:
-        return UserController.add_user(new_user)
+    def add_user(self, new_user: str) -> bool:
+        if new_user not in self.__users:
+            self.__users.append(new_user)
+            return True
+        else:
+            return False
 
-    def remove_user(self, del_user: User) -> bool:
-        return UserController.remove_user(del_user)
+    def remove_user(self, del_user: str) -> bool:
+        if del_user in self.__users:
+            self.__users.remove(del_user)
+            return True
+        else:
+            return False
 
     def get_dict(self) -> dict:
         dic = {
             "name": self.name,
             "id": self.id,
             "leader": self.leader,
-            "tasks": self.__tasks,
-            "users": [user.get_dict() for user in UserController.get_users()],
+            "tasks": [task.get_dict() for task in self.__tasks],
+            "users": self.users,
         }
         return dic
 
