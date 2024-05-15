@@ -177,12 +177,13 @@ class Project:
             "id": self.__id,
             "tasks": [task.get_dict() for task in self.__tasks],
             "users": self.__users,
-            "leader": self.__leader,
+            "leader": self.__leader
         }
         return dic
 
 
 class ProjectController:
+    @staticmethod
     def create_base_file():
         if not os.path.exists("projects.json"):
             base_dict = {"projects": []}
@@ -190,27 +191,28 @@ class ProjectController:
                 json.dump(base_dict, file)
 
     @staticmethod
-    def get_projects():
-        ProjectController.create_base_file
+    def get_projects(username):
+        ProjectController.create_base_file()
+        "only returns the users' projects"
         projects = []
         with open("projects.json", "r") as file:
             data = json.load(file)
             projects_keywords = [{**project} for project in data["projects"]]
             for project_keywords in projects_keywords:
+                if username not in project_keywords["users"]:
+                    continue
                 tasks_data = project_keywords["tasks"]
                 del project_keywords["tasks"]
                 tasks = [Task(**task_data) for task_data in tasks_data]
                 project_keywords["tasks"] = tasks
-
+                
                 projects.append(Project(**project_keywords))
-
         return projects
 
     @staticmethod
     def save_projects(projects):
         with open("projects.json", "w") as file:
             data = {"projects": [project.get_dict() for project in projects]}
-            print(data)
             json.dump(data, file)
 
     @staticmethod

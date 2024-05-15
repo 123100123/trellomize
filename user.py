@@ -1,6 +1,10 @@
 import json
 import re
 import os
+from project import ProjectController
+from project import Project
+from project import Task
+
 
 class User:
     def __init__(
@@ -62,13 +66,13 @@ class User:
     def projects(self):
         return self.__projects
 
-    def add_project(self, project_id: str) -> None:
-        if project_id in self.__projects:
-            self.__projects.append(project_id)
+    def add_project(self, project: Project) -> None:
+        self.__projects.append(project.id)
+        ProjectController.add_project(project)
 
-    def remove_project(self, project_id: str) -> None:
-        if project_id in self.__projects.id:
-            self.__projects.remove(project_id)
+    def remove_project(self, project: Project) -> None:
+        self.__projects.remove(project.id)
+        ProjectController.remove_project(project)
 
     def get_dict(self) -> dict:
         dic = {
@@ -96,6 +100,13 @@ class UserController:
 
         with open("users.json", "r") as file:
             users_data = json.load(file)["users"]
+            
+            users = []
+            for user_data in users_data:
+
+                user_data["projects"] = ProjectController.get_projects(user_data["username"])
+                users.append(User(**user_data))
+            print(user_data)
             users = [User(**user_data) for user_data in users_data]
             return users
 
