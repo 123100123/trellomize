@@ -5,14 +5,14 @@ import os
 class Task:
     def __init__(
         self,
-        name,
-        state,
-        starting_date,
-        ending_date,
-        description,
-        users,
-        comments,
-        priority,
+        name : str,
+        state : str,
+        starting_date : str,
+        ending_date : str,
+        description : str,
+        users : list[str], 
+        comments : list[Comment],
+        priority : int,
     ) -> None:
         self.__name = name
         self.__state = state
@@ -29,10 +29,66 @@ class Task:
 
     @name.setter
     def name(self, new_name: str) -> bool:
-        if ProjectController.exists(new_name):
+        if TaskController.exists(new_name):
             return False
         self.__name = new_name
         return True
+
+    @property
+    def state(self) -> str:
+        return self.__state
+
+    @state.setter
+    def state(self, new_state: str) -> None:
+        self.__state = new_state
+
+    @property
+    def starting_date(self) -> str:
+        return self.__starting_date
+
+    @starting_date.setter
+    def starting_date(self, new_starting_date: str) -> None:
+        self.__starting_date = new_starting_date
+
+    @property
+    def ending_date(self) -> str:
+        return self.__ending_date
+
+    @ending_date.setter
+    def ending_date(self, new_ending_date: str) -> None:
+        self.__ending_date = new_ending_date
+
+    @property
+    def description(self) -> str:
+        return self.__description
+
+    @description.setter
+    def description(self, new_description: str) -> None:
+        self.__description = new_description
+
+    @property
+    def users(self) -> list:
+        return self.__users
+
+    @users.setter
+    def users(self, new_users: list) -> None:
+        self.__users = new_users
+
+    @property
+    def comments(self) -> list:
+        return self.__comments
+
+    @comments.setter
+    def comments(self, new_comments: list) -> None:
+        self.__comments = new_comments
+
+    @property
+    def priority(self) -> int:
+        return self.__priority
+
+    @priority.setter
+    def priority(self, new_priority: int) -> None:
+        self.__priority = new_priority
 
     def get_dict(self):
         dic = {
@@ -101,13 +157,19 @@ class Project:
     def get_tasks(self):
         return self.__tasks
 
-    def add_task(self, task):
-        # append the input task to the tasks list
-        pass
+    def add_task(self, task) -> bool:
+        if task not in self.__tasks:
+            self.__tasks.append(task)
+            return True
+        else :
+            return False
 
-    def remove(self, task):
-        # remove the input task to the tasks list
-        pass
+    def remove(self, task) -> bool:
+        if task in self.__tasks:
+            self.__tasks.remove(task)
+            return True
+        else :
+            return False
 
     def get_dict(self):
         dic = {
