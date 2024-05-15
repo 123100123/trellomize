@@ -3,8 +3,6 @@ import re
 import os
 from project import ProjectController
 from project import Project
-from project import Task
-
 
 class User:
     def __init__(
@@ -157,4 +155,4 @@ class UserController:
 
     @staticmethod
     def password_check(password: str) -> bool:
-        return len(password >= 8)
+        return len(password) >= 8

@@ -1,6 +1,6 @@
 import json
 import os
-
+from comment import Comment
 
 class Task:
     def __init__(
@@ -29,10 +29,7 @@ class Task:
 
     @name.setter
     def name(self, new_name: str) -> bool:
-        if TaskController.exists(new_name):
-            return False
         self.__name = new_name
-        return True
 
     @property
     def state(self) -> str:
