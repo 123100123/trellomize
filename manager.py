@@ -2,7 +2,6 @@ from encoder import Encoder
 import argparse
 import os
 
-
 def create_admin(username, password):
     if os.path.exists("Admin.txt"):
         print("Error: Admin Already Exists")
@@ -11,7 +10,6 @@ def create_admin(username, password):
     output = "%s,%s" % (username, Encoder.encrypt(password))
     with open("Admin.txt", "w") as file:
         file.write(output)
-
 
 parser = argparse.ArgumentParser()
 parser.add_argument("action",type=str)

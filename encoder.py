@@ -1,7 +1,6 @@
 from cryptography.fernet import Fernet
 import os
 
-
 class Encoder:
     @staticmethod
     def __write_key() -> None:

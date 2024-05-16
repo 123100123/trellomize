@@ -1,6 +1,7 @@
 import json
 import os
 from comment import Comment
+import uuid
 
 class Task:
     def __init__(
@@ -105,13 +106,12 @@ class Project:
     def __init__(
         self,
         name: str,
-        id: str,
         tasks: list[Task],
         users: list[str],
         leader: str,
     ) -> None:
         self.__name = name
-        self.__id = id
+        self.__id = str(uuid.uuid4())
         self.__leader = leader
         self.__tasks = tasks
         self.__users = users
@@ -161,7 +161,7 @@ class Project:
         else :
             return False
 
-    def remove(self, task) -> bool:
+    def remove_task(self, task) -> bool:
         if task in self.__tasks:
             self.__tasks.remove(task)
             return True
