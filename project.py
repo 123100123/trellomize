@@ -1,6 +1,6 @@
 import json
 import os
-from comment import Comment
+# from comment import Comment
 import uuid
 
 class Task:
@@ -12,7 +12,7 @@ class Task:
         ending_date : str,
         description : str,
         users : list[str], 
-        comments : list[Comment],
+        comments,#: list[Comment],
         priority : int,
     ) -> None:
         self.__name = name
@@ -87,7 +87,7 @@ class Task:
     @priority.setter
     def priority(self, new_priority: int) -> None:
         self.__priority = new_priority
-
+    
     def get_dict(self):
         dic = {
             "name": self.__name,
@@ -134,7 +134,9 @@ class Project:
     @property
     def id(self) -> str:
         return self.__id
-
+    @property
+    def tasks(self):
+        return self.__tasks
     @property
     def users(self) -> list[str]:
         return self.__users
@@ -150,9 +152,12 @@ class Project:
             self.__users.remove(user)
             return True
         return False
+    
+    def get_task(self,task):
+        _index = [_task.id for _task in self.__tasks].index(task.id)
+        task = self.__tasks[_index]
+        return task
 
-    def get_tasks(self):
-        return self.__tasks
 
     def add_task(self, task) -> bool:
         if task not in self.__tasks:
@@ -229,6 +234,7 @@ class ProjectController:
         projects = ProjectController.get_projects()
         ids = [_project.id for _project in projects]
         projects.pop(ids.index(project.id))
+        projects.append(project)
         ProjectController.save_projects()
 
     @staticmethod
@@ -239,3 +245,5 @@ class ProjectController:
             return None
 
         return projects
+    
+

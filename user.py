@@ -1,8 +1,7 @@
-import json
 import re
 import os
-from project import ProjectController
-from project import Project
+import json
+from project import ProjectController,Project
 
 class User:
     def __init__(
@@ -71,14 +70,15 @@ class User:
     def remove_project(self, project: Project) -> None:
         self.__projects.remove(project.id)
         ProjectController.remove_project(project)
-
+    
+    
     def get_dict(self) -> dict:
         dic = {
             "username": self.username,
             "password": self.password,
             "email": self.email,
             "enabled": self.enabled,
-            "projects": self.projects,
+            "projects": [project.id for project in self.projects],
         }
         return dic
 
@@ -104,7 +104,6 @@ class UserController:
 
                 user_data["projects"] = ProjectController.get_projects(user_data["username"])
                 users.append(User(**user_data))
-            print(user_data)
             users = [User(**user_data) for user_data in users_data]
             return users
 
