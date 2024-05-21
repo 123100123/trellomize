@@ -1,31 +1,22 @@
-from user import User
-
 class Comment:
-    def __init__(self , id : int , text : str , user : User) -> None:
-        self.__id = id
+    def __init__(self , text : str , date : str, user : str, id: int) -> None:
         self.__text = text
+        self.__date = date
         self.__user = user
-
-    @property
-    def id(self) -> int:
-        return self.__id
-
-    @id.setter
-    def id(self, new_id: int) -> None:
-        self.__id = new_id
+        self.__id = id
 
     @property
     def text(self) -> str:
         return self.__text
 
-    @text.setter
-    def text(self, new_text: str) -> None:
-        self.__text = new_text
+    @property
+    def date(self) -> str:
+        return self.__date
 
     @property
-    def user(self) -> User:
+    def user(self) -> str:
         return self.__user
 
-    @user.setter
-    def user(self, new_user: User) -> None:
-        self.__user = new_user
+    @property
+    def id(self) -> int:
+        return self.__id

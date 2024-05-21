@@ -1,6 +1,7 @@
 import json
 import os
-# from comment import Comment
+import datetime
+from comment import Comment
 import uuid
 
 class Task:
@@ -12,7 +13,7 @@ class Task:
         ending_date : str,
         description : str,
         users : list[str], 
-        comments,#: list[Comment],
+        comments: list[Comment],
         priority : int,
     ) -> None:
         self.__name = name
@@ -75,10 +76,23 @@ class Task:
     @property
     def comments(self) -> list:
         return self.__comments
-
-    @comments.setter
-    def comments(self, new_comments: list) -> None:
-        self.__comments = new_comments
+    
+    def add_comment(self, user: str, task_id: str):
+        text = input("Enter the comment text: ")
+        date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        comments_file_path = f"Tasks/{task_id}/comments.txt"
+        if not os.path.exists(comments_file_path):
+            os.makedirs(os.path.dirname(comments_file_path), exist_ok=True)
+            id = 1
+        else:
+            with open(comments_file_path, "r") as file:
+                lines = file.readlines()
+                last_line = lines[-1] if lines else "1"
+                id = int(last_line.split()[0]) + 1
+        with open(comments_file_path, "a") as file:
+            file.write(f"{id} {user} {date} {text}\n")
+        comment = Comment(text, date, user, id)
+        self.__comments.append(comment)
 
     @property
     def priority(self) -> int:
@@ -96,7 +110,7 @@ class Task:
             "ending_date": self.__ending_date,
             "description": self.__description,
             "users": self.__users,
-            "comments": self.__comments,
+            "comments": [comment.__dict__ for comment in self.__comments],
             "priority": self.__priority,
         }
         return dic
@@ -205,9 +219,20 @@ class ProjectController:
                     continue
                 tasks_data = project_keywords["tasks"]
                 del project_keywords["tasks"]
-                tasks = [Task(**task_data) for task_data in tasks_data]
-                project_keywords["tasks"] = tasks
                 
+                # Create Task objects correctly
+                tasks = [Task(
+                    name=task_data['name'],
+                    state=task_data['state'],
+                    starting_date=task_data['starting_date'],
+                    ending_date=task_data['ending_date'],
+                    description=task_data['description'],
+                    users=task_data['users'],
+                    comments=[Comment(**comment_data) for comment_data in task_data['comments']],
+                    priority=task_data['priority']
+                ) for task_data in tasks_data]
+                
+                project_keywords["tasks"] = tasks
                 projects.append(Project(**project_keywords))
         return projects
 
@@ -246,4 +271,8 @@ class ProjectController:
 
         return projects
     
-
+    @staticmethod
+    def exists(name):
+        projects = ProjectController.get_projects()
+        return any(project.name == name for project in projects)
+    
