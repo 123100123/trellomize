@@ -87,8 +87,11 @@ class Task:
         else:
             with open(comments_file_path, "r") as file:
                 lines = file.readlines()
-                last_line = lines[-1] if lines else "1"
-                id = int(last_line.split()[0]) + 1
+                if lines:
+                    last_line = lines[-1]
+                    id = int(last_line.split()[0]) + 1
+                else:
+                    id = 1
         with open(comments_file_path, "a") as file:
             file.write(f"{id} {user} {date} {text}\n")
         comment = Comment(text, date, user, id)
