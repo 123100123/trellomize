@@ -1,7 +1,29 @@
 import re
+import logging
 import os
 import json
-from project import ProjectController,Project
+from project import ProjectController, Project
+
+# Set up logger
+logger = logging.getLogger('user_logger')
+logger.setLevel(logging.INFO)
+
+# Create a file handler
+file_handler = logging.FileHandler('user_actions.log')
+file_handler.setLevel(logging.INFO)
+
+# Create a console handler
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+
+# Create a formatter and set it for the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+console_handler.setFormatter(formatter)
+
+# Add handlers to the logger
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
 
 class User:
     def __init__(
@@ -17,6 +39,7 @@ class User:
         self.__email = email
         self.__enabled = enabled
         self.__projects = projects
+        logger.info(f'User created: {self.__username}')
 
     @property
     def username(self) -> str:
@@ -25,7 +48,9 @@ class User:
     @username.setter
     def username(self, new_username: str) -> bool:
         if UserController.exists(new_username):
+            logger.warning(f'Failed to change username to {new_username}: username already exists')
             return False
+        logger.info(f'Username changed from {self.__username} to {new_username}')
         self.__username = new_username
         return True
 
@@ -36,7 +61,9 @@ class User:
     @password.setter
     def password(self, new_password: str) -> bool:
         if not UserController.password_check(new_password):
+            logger.warning(f'Failed to change password for {self.__username}: password check failed')
             return False
+        logger.info(f'Password changed for user {self.__username}')
         self.__password = new_password
         return True
 
@@ -47,7 +74,9 @@ class User:
     @email.setter
     def email(self, new_email: str) -> bool:
         if not UserController.email_check(new_email):
+            logger.warning(f'Failed to change email for {self.__username}: email check failed')
             return False
+        logger.info(f'Email changed for user {self.__username} to {new_email}')
         self.__email = new_email
         return True
 
@@ -57,6 +86,7 @@ class User:
 
     @enabled.setter
     def enabled(self, new_enabled: bool) -> None:
+        logger.info(f'User {self.__username} enabled status changed to {new_enabled}')
         self.__enabled = new_enabled
 
     @property
@@ -66,20 +96,22 @@ class User:
     def add_project(self, project: Project) -> None:
         self.__projects.append(project.id)
         ProjectController.add_project(project)
+        logger.info(f'Project {project.name} added to user {self.__username}')
 
     def remove_project(self, project: Project) -> None:
         self.__projects.remove(project.id)
         ProjectController.remove_project(project)
-    
-    
+        logger.info(f'Project {project.name} removed from user {self.__username}')
+
     def get_dict(self) -> dict:
         dic = {
             "username": self.username,
             "password": self.password,
             "email": self.email,
             "enabled": self.enabled,
-            "projects": [project.id for project in self.projects],
+            "projects": [project for project in self.projects],
         }
+        logger.info(f'User dictionary for {self.__username} created')
         return dic
 
 

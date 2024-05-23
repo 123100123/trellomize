@@ -1,20 +1,42 @@
 import json
+import logging
 import os
 import datetime
 from comment import Comment
 import uuid
 
+# Set up logger
+logger = logging.getLogger('task_project_logger')
+logger.setLevel(logging.INFO)
+
+# Create a file handler
+file_handler = logging.FileHandler('task_project.log')
+file_handler.setLevel(logging.INFO)
+
+# Create a console handler
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+
+# Create a formatter and set it for the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+console_handler.setFormatter(formatter)
+
+# Add handlers to the logger
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
+
 class Task:
     def __init__(
         self,
-        name : str,
-        state : str,
-        starting_date : str,
-        ending_date : str,
-        description : str,
-        users : list[str], 
+        name: str,
+        state: str,
+        starting_date: str,
+        ending_date: str,
+        description: str,
+        users: list[str],
         comments: list[Comment],
-        priority : int,
+        priority: int,
     ) -> None:
         self.__name = name
         self.__state = state
@@ -24,13 +46,15 @@ class Task:
         self.__users = users
         self.__comments = comments
         self.__priority = priority
+        logger.info(f'Task created: {self.__name}')
 
     @property
     def name(self) -> str:
         return self.__name
 
     @name.setter
-    def name(self, new_name: str) -> bool:
+    def name(self, new_name: str) -> None:
+        logger.info(f'Task name changed from {self.__name} to {new_name}')
         self.__name = new_name
 
     @property
@@ -39,6 +63,7 @@ class Task:
 
     @state.setter
     def state(self, new_state: str) -> None:
+        logger.info(f'Task state changed from {self.__state} to {new_state}')
         self.__state = new_state
 
     @property
@@ -47,6 +72,7 @@ class Task:
 
     @starting_date.setter
     def starting_date(self, new_starting_date: str) -> None:
+        logger.info(f'Task starting date changed from {self.__starting_date} to {new_starting_date}')
         self.__starting_date = new_starting_date
 
     @property
@@ -55,6 +81,7 @@ class Task:
 
     @ending_date.setter
     def ending_date(self, new_ending_date: str) -> None:
+        logger.info(f'Task ending date changed from {self.__ending_date} to {new_ending_date}')
         self.__ending_date = new_ending_date
 
     @property
@@ -63,6 +90,7 @@ class Task:
 
     @description.setter
     def description(self, new_description: str) -> None:
+        logger.info(f'Task description changed from {self.__description} to {new_description}')
         self.__description = new_description
 
     @property
@@ -71,12 +99,13 @@ class Task:
 
     @users.setter
     def users(self, new_users: list) -> None:
+        logger.info(f'Task users changed to {new_users}')
         self.__users = new_users
 
     @property
     def comments(self) -> list:
         return self.__comments
-    
+
     def add_comment(self, user: str, task_id: str):
         text = input("Enter the comment text: ")
         date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -96,6 +125,7 @@ class Task:
             file.write(f"{id} {user} {date} {text}\n")
         comment = Comment(text, date, user, id)
         self.__comments.append(comment)
+        logger.info(f'Comment added to task {task_id} by user {user}: {text}')
 
     @property
     def priority(self) -> int:
@@ -103,8 +133,9 @@ class Task:
 
     @priority.setter
     def priority(self, new_priority: int) -> None:
+        logger.info(f'Task priority changed from {self.__priority} to {new_priority}')
         self.__priority = new_priority
-    
+
     def get_dict(self):
         dic = {
             "name": self.__name,
@@ -132,6 +163,7 @@ class Project:
         self.__leader = leader
         self.__tasks = tasks
         self.__users = users
+        logger.info(f'Project created: {self.__name} with ID: {self.__id}')
 
     @property
     def name(self) -> str:
@@ -140,7 +172,9 @@ class Project:
     @name.setter
     def name(self, new_name: str) -> bool:
         if ProjectController.exists(new_name):
+            logger.warning(f'Failed to change project name to {new_name}: name already exists')
             return False
+        logger.info(f'Project name changed from {self.__name} to {new_name}')
         self.__name = new_name
         return True
 
@@ -151,9 +185,11 @@ class Project:
     @property
     def id(self) -> str:
         return self.__id
+
     @property
     def tasks(self):
         return self.__tasks
+
     @property
     def users(self) -> list[str]:
         return self.__users
@@ -161,34 +197,40 @@ class Project:
     def add_user(self, new_user: str) -> bool:
         if new_user not in self.__users:
             self.__users.append(new_user)
+            logger.info(f'User {new_user} added to project {self.__name}')
             return True
+        logger.warning(f'Failed to add user {new_user}: user already in project')
         return False
 
     def remove_user(self, user: str) -> bool:
         if user in self.__users:
             self.__users.remove(user)
+            logger.info(f'User {user} removed from project {self.__name}')
             return True
+        logger.warning(f'Failed to remove user {user}: user not in project')
         return False
     
-    def get_task(self,task):
+    def get_task(self, task):
         _index = [_task.id for _task in self.__tasks].index(task.id)
         task = self.__tasks[_index]
+        logger.info(f'Fetched task {task.name} from project {self.__name}')
         return task
-
 
     def add_task(self, task) -> bool:
         if task not in self.__tasks:
             self.__tasks.append(task)
+            logger.info(f'Task {task.name} added to project {self.__name}')
             return True
-        else :
-            return False
+        logger.warning(f'Failed to add task {task.name}: task already in project')
+        return False
 
     def remove_task(self, task) -> bool:
         if task in self.__tasks:
             self.__tasks.remove(task)
+            logger.info(f'Task {task.name} removed from project {self.__name}')
             return True
-        else :
-            return False
+        logger.warning(f'Failed to remove task {task.name}: task not in project')
+        return False
 
     def get_dict(self):
         dic = {
@@ -199,7 +241,6 @@ class Project:
             "leader": self.__leader
         }
         return dic
-
 
 class ProjectController:
     @staticmethod
