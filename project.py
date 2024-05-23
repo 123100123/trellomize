@@ -74,7 +74,7 @@ class Task:
         Returns:
             str: today's date
         """
-        return datetime.date.strftime('%Y-%m-%d')
+        return datetime.date.today().strftime('%Y-%m-%d')
     
     @staticmethod
     def default_ending_date() ->str:
@@ -101,11 +101,11 @@ class Task:
         self.__name = new_name
 
     @property
-    def state(self) -> str:
+    def state(self) -> State:
         return self.__state
 
     @state.setter
-    def state(self, new_state: str) -> None:
+    def state(self, new_state: State) -> None:
         self.__state = new_state
 
     @property
@@ -155,6 +155,13 @@ class Task:
     @priority.setter
     def priority(self, new_priority: int) -> None:
         self.__priority = new_priority
+    
+    
+    def add_user(self,username:str):
+        self.__users.append(username)    
+    
+    def remove_user(self,username:str):
+        self.__users.remove(username)
     
     def get_dict(self):
         dic = {
