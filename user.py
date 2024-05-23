@@ -1,22 +1,15 @@
 import re
 import os
 import json
-from project import ProjectController,Project
+from project import ProjectController, Project,Task
+
 
 class User:
-    def __init__(
-        self,
-        username: str,
-        password: str,
-        email: str,
-        enabled: bool,
-        projects: list[str],
-    ) -> None:
+    def __init__(self, username: str, password: str, email: str, enabled: bool) -> None:
         self.__username = username
         self.__password = password
         self.__email = email
         self.__enabled = enabled
-        self.__projects = projects
 
     @property
     def username(self) -> str:
@@ -65,20 +58,18 @@ class User:
 
     def add_project(self, project: Project) -> None:
         self.__projects.append(project.id)
-        ProjectController.add_project(project)
+        ProjectController.add_project(self.__username, project)
 
     def remove_project(self, project: Project) -> None:
-        self.__projects.remove(project.id)
-        ProjectController.remove_project(project)
-    
-    
+        self.__projects.remove(self.__username, project.id)
+        ProjectController.remove_project(self.__username, project)
+
     def get_dict(self) -> dict:
         dic = {
-            "username": self.username,
-            "password": self.password,
-            "email": self.email,
-            "enabled": self.enabled,
-            "projects": [project.id for project in self.projects],
+            "username": self.__username,
+            "password": self.__password,
+            "email": self.__email,
+            "enabled": self.__enabled,
         }
         return dic
 
@@ -98,27 +89,29 @@ class UserController:
 
         with open("users.json", "r") as file:
             users_data = json.load(file)["users"]
-            
-            users = []
-            for user_data in users_data:
 
-                user_data["projects"] = ProjectController.get_projects(user_data["username"])
-                users.append(User(**user_data))
+            # users = []
+            # for user_data in users_data:
+
+            #     user_data["projects"] = ProjectController.get_projects(
+            #         user_data["username"]
+            #     )
+            #     users.append(User(**user_data))
             users = [User(**user_data) for user_data in users_data]
             return users
 
     @staticmethod
     def save_users(users: list[User]):
-        data = {"users": [user.get_dict() for user in users]}
 
+        data = {"users": [user.get_dict() for user in users]}
+        for user_info in data["users"]:
+            user_info["projects"] = [_project.id for _project in user_info["projects"]]
         with open("users.json", "w") as file:
             json.dump(data, file)
 
     @staticmethod
     def add_user(user: User) -> bool:
         users = UserController.get_users()
-        if UserController.exists(user.username):
-            return False
         users.append(user)
         UserController.save_users(users)
         return True
@@ -134,17 +127,24 @@ class UserController:
         return True
 
     @staticmethod
-    def exists(username: str) -> bool:
+    def exists(info: str) -> bool:
         users = UserController.get_users()
         usernames = [_user.username for _user in users]
-        return username in usernames
+        emails = [_user.email for _user in users]
+
+        return info in usernames or info in emails
 
     @staticmethod
     def upadate_user(user: str) -> bool:
-        if not UserController.exists(user.username):
-            return False
         UserController.remove_user(user)
         UserController.add_user(user)
+
+    @staticmethod
+    def get_user(info: str) -> bool:
+        users: list[User] = UserController.get_users()
+        for user in users:
+            if user.username == info or user.username == info:
+                return user
 
     @staticmethod
     def email_check(email: str) -> bool:

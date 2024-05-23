@@ -1,29 +1,97 @@
 import json
 import os
-# from comment import Comment
 import uuid
+import datetime
+import re
+from enum import Enum
+# from comment import Comment
 
 class Task:
+    class State(Enum):
+        BackLog = 1
+        ToDo = 2
+        Doing = 3
+        Done= 4
+        Archived = 5
+        
+    class Priority(Enum):
+        Low = 1
+        Medium = 2
+        High = 3
+        Critical= 4
+        
+        
     def __init__(
         self,
+        id :str,
         name : str,
         state : str,
+        priority : str,
         starting_date : str,
         ending_date : str,
         description : str,
         users : list[str], 
-        comments,#: list[Comment],
-        priority : int,
     ) -> None:
         self.__name = name
-        self.__state = state
+        self.__id = id
+        self.__state = self.State[state]
+        self.__priority = self.Priority[priority]
         self.__starting_date = starting_date
         self.__ending_date = ending_date
         self.__description = description
         self.__users = users
-        self.__comments = comments
-        self.__priority = priority
-
+    
+    @staticmethod
+    def generate_id() -> str:
+        """
+        returns a 5 character uuid 
+        """
+        return str(uuid.uuid4())[:5]
+    
+    
+    
+    @staticmethod
+    def check_date(first_date:str,second_date = None) -> bool:
+        current = datetime.date.today()
+        if second_date == None:
+            try:
+                inp = datetime.datetime.strptime(first_date,"%Y-%m-%d")
+                return inp >=current
+            except:
+                return False
+        
+        try:
+            inp = datetime.datetime.strptime(first_date,"%Y-%m-%d")
+            inp2 = datetime.datetime.strptime(second_date,"%Y-%m-%d")
+            
+            return inp2 >inp 
+        except:
+            return False
+    
+    @staticmethod
+    def current_date() -> str:
+        """
+        Returns:
+            str: today's date
+        """
+        return datetime.date.strftime('%Y-%m-%d')
+    
+    @staticmethod
+    def default_ending_date() ->str:
+        """
+        Returns:
+            str: tommorow's date
+        """
+        return str(datetime.date.today()+ datetime.timedelta(days=1))
+    
+    @property
+    def id(self):
+        return self.__id
+    
+    @id.setter
+    def id(self,id):
+        self.__id = id
+    
     @property
     def name(self) -> str:
         return self.__name
@@ -90,14 +158,14 @@ class Task:
     
     def get_dict(self):
         dic = {
+            "id": self.__id,
             "name": self.__name,
-            "state": self.__state,
+            "state": self.__state.name,
+            "priority": self.__priority.name,
             "starting_date": self.__starting_date,
             "ending_date": self.__ending_date,
             "description": self.__description,
             "users": self.__users,
-            "comments": self.__comments,
-            "priority": self.__priority,
         }
         return dic
 
@@ -109,9 +177,10 @@ class Project:
         tasks: list[Task],
         users: list[str],
         leader: str,
+        id:str
     ) -> None:
         self.__name = name
-        self.__id = str(uuid.uuid4())
+        self.__id = id
         self.__leader = leader
         self.__tasks = tasks
         self.__users = users
@@ -122,8 +191,6 @@ class Project:
 
     @name.setter
     def name(self, new_name: str) -> bool:
-        if ProjectController.exists(new_name):
-            return False
         self.__name = new_name
         return True
 
@@ -142,10 +209,8 @@ class Project:
         return self.__users
 
     def add_user(self, new_user: str) -> bool:
-        if new_user not in self.__users:
-            self.__users.append(new_user)
-            return True
-        return False
+        self.__users.append(new_user)
+        
 
     def remove_user(self, user: str) -> bool:
         if user in self.__users:
@@ -160,18 +225,11 @@ class Project:
 
 
     def add_task(self, task) -> bool:
-        if task not in self.__tasks:
-            self.__tasks.append(task)
-            return True
-        else :
-            return False
+        self.__tasks.append(task)
+            
 
     def remove_task(self, task) -> bool:
-        if task in self.__tasks:
-            self.__tasks.remove(task)
-            return True
-        else :
-            return False
+        self.__tasks.remove(task)
 
     def get_dict(self):
         dic = {
@@ -218,28 +276,32 @@ class ProjectController:
             json.dump(data, file)
 
     @staticmethod
-    def add_project(project):
-        projects = ProjectController.get_projects()
+    def add_project(username,project):
+        projects = ProjectController.get_projects(username)
         projects.append(project)
         ProjectController.save_projects(projects)
 
     @staticmethod
-    def remove_project(project):
-        projects = ProjectController.get_projects()
+    def remove_project(username,project):
+        projects = ProjectController.get_projects(username)
         projects.remove(project)
         ProjectController.save_projects(projects)
 
     @staticmethod
-    def update_project(project):
-        projects = ProjectController.get_projects()
+    def update_project(username,project:Project):
+        print(username)
+        projects = ProjectController.get_projects(username)
+        print(projects)
+        
         ids = [_project.id for _project in projects]
+        print(ids)
         projects.pop(ids.index(project.id))
         projects.append(project)
-        ProjectController.save_projects()
+        ProjectController.save_projects(projects)
 
     @staticmethod
-    def get_project(project_id):
-        projects = ProjectController.get_projects()
+    def get_project(username,project_id):
+        projects = ProjectController.get_projects(username)
         project_ids = [project.id for project in projects]
         if project_id not in project_ids:
             return None
