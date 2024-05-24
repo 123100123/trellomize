@@ -175,7 +175,7 @@ class TaskMenu:
                 name = input("choose a new name(0 to go back)")
                 if Menu.back(name):
                     continue
-                self.__task.name = self.__user.username,name
+                self.__task.name = (self.__user.username,name)
 
             elif choice == 2:
                 options = [_priority.name for _priority in Task.Priority] + ["back"]

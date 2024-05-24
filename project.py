@@ -7,7 +7,7 @@ import datetime
 import re
 from enum import Enum
 
-logger = logging.getLogger('user')
+logger = logging.getLogger('loggerFile')
 
 class Task:
     class State(Enum):
@@ -51,11 +51,12 @@ class Task:
             os.makedirs(task_dir, exist_ok=True)
     
     def manage_actions(self, username:str, action: str):
+        self.create_base_file()
         history_change = f"{username}: {action}"
         logger_change = f"{username}: {action} in {self.__id} task"
         logger.info(logger_change)
         with open(f"tasks/{self.__id}/history.txt", "a+") as file:
-            file.write(history_change)
+            file.write(history_change+"\n")
         
             
     @staticmethod
@@ -108,7 +109,8 @@ class Task:
         return self.__name
 
     @name.setter
-    def name(self, username: str, new_name: str) -> None:
+    def name(self,args) -> None:
+        username,new_name = args
         self.manage_actions(username,f"changed name from {self.__name} to {new_name}")
         self.__name = new_name
 
