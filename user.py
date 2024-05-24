@@ -1,10 +1,11 @@
 import re
+from loggerFile import logger
 import logging
 import os
 import json
 from project import ProjectController, Project,Task
 
-logger = logging.getLogger("loggerFile")
+logger = logging.getLogger('loggerFile')
 
 class User:
     def __init__(self, username: str, password: str, email: str, enabled: bool) -> None:

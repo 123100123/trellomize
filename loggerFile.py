@@ -2,7 +2,7 @@ import logging
 
 print(__name__)
 # Create a logger
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('loggerFile')
 
 # Set the level of this logger. This level will be used to filter out logs
 logger.setLevel(logging.DEBUG)
