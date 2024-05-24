@@ -44,7 +44,21 @@ class Task:
         self.__ending_date = ending_date
         self.__description = description
         self.__users = users
-
+    
+    def create_base_file(self):
+        tasks_dir = "tasks"
+        task_dir = os.path.join(tasks_dir, self.__id)
+                
+        if not os.path.exists(task_dir):
+            os.makedirs(task_dir, exist_ok=True)
+    
+    def manage_actions(self, username:str, action: str):
+        change = f"{username}: {action}"
+        logger.info(change)
+        with open(f"tasks/{self.__id}/history.txt", "a+") as file:
+            file.write(change)
+        
+            
     @staticmethod
     def generate_id() -> str:
         """
@@ -90,17 +104,13 @@ class Task:
     def id(self):
         return self.__id
 
-    @id.setter
-    def id(self, id):
-        self.__id = id
-
     @property
     def name(self) -> str:
         return self.__name
 
     @name.setter
-    def name(self, new_name: str) -> None:
-        logger.info(f"Task name changed from {self.__name} to {new_name}")
+    def name(self, username: str, new_name: str) -> None:
+        self.manage_actions(username,f"changed name from {self.__name} to {new_name}")
         self.__name = new_name
 
     @property
@@ -108,7 +118,8 @@ class Task:
         return self.__state
 
     @state.setter
-    def state(self, new_state: State) -> None:
+    def state(self, username:str ,new_state: State) -> None:
+        self.manage_actions(username,f"changed name from {self.__state.name} to {new_state.name}")
         self.__state = new_state
 
     @property
@@ -125,7 +136,7 @@ class Task:
     @property
     def ending_date(self) -> str:
         return self.__ending_date
-
+    
     @ending_date.setter
     def ending_date(self, new_ending_date: str) -> None:
         logger.info(
@@ -138,9 +149,9 @@ class Task:
         return self.__description
 
     @description.setter
-    def description(self, new_description: str) -> None:
+    def description(self, user:str ,new_description: str) -> None:
         logger.info(
-            f"Task description changed from {self.__description} to {new_description}"
+            f"Task description changed from {self.__description} to {new_description} by {user}"
         )
         self.__description = new_description
 
@@ -148,43 +159,22 @@ class Task:
     def users(self) -> list:
         return self.__users
 
-    @users.setter
-    def users(self, new_users: list) -> None:
-        logger.info(f"Task users changed to {new_users}")
-        self.__users = new_users
-
     @property
     def comments(self) -> list:
         return self.__comments
-
-    def add_comment(self, user: str):
-        text = input("Enter the comment text: ")
-        date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        task_id = self.__id
-        tasks_dir = "Tasks"
-        task_dir = os.path.join(tasks_dir, str(task_id))
-        comments_file_path = os.path.join(task_dir, "comments.txt")
+    
         
-        if not os.path.exists(task_dir):
-            os.makedirs(task_dir, exist_ok=True)
+    
+    def add_comment(self,user: str,text):
+        self.create_base_file()
+        date = self.current_date()
         
-        if not os.path.exists(comments_file_path):
-            id = 1
-        else:
-            with open(comments_file_path, "r") as file:
-                lines = file.readlines()
-                if lines:
-                    last_line = lines[-1]
-                    id = int(last_line.split()[0]) + 1
-                else:
-                    id = 1
-
-        with open(comments_file_path, "a") as file:
-            file.write(f"{id} {user} {date} {text}\n")
         
-        comment = Comment(text, date, user, id)
-        self.__comments.append(comment)
-        logger.info(f"Comment added to task {task_id} by user {user}: {text}")
+        with open(f"tasks/{self.__id}/comment.txt", "a+") as file:
+            file.write(f"{user}({date}): {text}\n")
+          
+        
+        logger.info(f"Comment added to task {self.__id} by user {user}: {text}")
 
     @property
     def priority(self) -> int:
@@ -197,6 +187,7 @@ class Task:
 
     def add_user(self, username: str):
         self.__users.append(username)
+        logger.info(f"user {username} added to task {self.__id} by {self.__le}")
 
     def remove_user(self, username: str):
         self.__users.remove(username)
