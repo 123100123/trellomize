@@ -450,8 +450,9 @@ class ProjectMenu:
         ProjectController.update_project(self.__user.username, self.__project)
 
     def remove_task(self):
-        print("remove")
         task = self.choose_task()
+        if task == None:
+            return
         self.__project.remove_task(task)
         ProjectController.update_project(self.__user.username, self.__project)
 

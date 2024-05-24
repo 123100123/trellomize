@@ -7,14 +7,15 @@ import uuid
 import datetime
 import re
 from enum import Enum
+
 # from comment import Comment
 
 # Set up logger
-logger = logging.getLogger('task_project_logger')
+logger = logging.getLogger("task_project_logger")
 logger.setLevel(logging.INFO)
 
 # Create a file handler
-file_handler = logging.FileHandler('task_project.log')
+file_handler = logging.FileHandler("task_project.log")
 file_handler.setLevel(logging.INFO)
 
 # Create a console handler
@@ -22,7 +23,7 @@ console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.INFO)
 
 # Create a formatter and set it for the handlers
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 file_handler.setFormatter(formatter)
 console_handler.setFormatter(formatter)
 
@@ -30,31 +31,31 @@ console_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 logger.addHandler(console_handler)
 
+
 class Task:
     class State(Enum):
         BackLog = 1
         ToDo = 2
         Doing = 3
-        Done= 4
+        Done = 4
         Archived = 5
-        
+
     class Priority(Enum):
         Low = 1
         Medium = 2
         High = 3
-        Critical= 4
-        
-        
+        Critical = 4
+
     def __init__(
         self,
-        id :str,
-        name : str,
-        state : str,
-        priority : str,
-        starting_date : str,
-        ending_date : str,
-        description : str,
-        users : list[str], 
+        id: str,
+        name: str,
+        state: str,
+        priority: str,
+        starting_date: str,
+        ending_date: str,
+        description: str,
+        users: list[str],
     ) -> None:
         self.__name = name
         self.__id = id
@@ -64,65 +65,63 @@ class Task:
         self.__ending_date = ending_date
         self.__description = description
         self.__users = users
-    
+
     @staticmethod
     def generate_id() -> str:
         """
-        returns a 5 character uuid 
+        returns a 5 character uuid
         """
         return str(uuid.uuid4())[:5]
-    
-    
-    
+
     @staticmethod
-    def check_date(first_date:str,second_date = None) -> bool:
+    def check_date(first_date: str, second_date=None) -> bool:
         current = datetime.date.today()
         if second_date == None:
             try:
-                inp = datetime.datetime.strptime(first_date,"%Y-%m-%d")
-                return inp >=current
+                inp = datetime.datetime.strptime(first_date, "%Y-%m-%d")
+                return inp >= current
             except:
                 return False
-        
+
         try:
-            inp = datetime.datetime.strptime(first_date,"%Y-%m-%d")
-            inp2 = datetime.datetime.strptime(second_date,"%Y-%m-%d")
-            
-            return inp2 >inp 
+            inp = datetime.datetime.strptime(first_date, "%Y-%m-%d")
+            inp2 = datetime.datetime.strptime(second_date, "%Y-%m-%d")
+
+            return inp2 > inp
         except:
             return False
-    
+
     @staticmethod
     def current_date() -> str:
         """
         Returns:
             str: today's date
         """
-        return datetime.date.today().strftime('%Y-%m-%d')
-    
+        return datetime.date.today().strftime("%Y-%m-%d")
+
     @staticmethod
-    def default_ending_date() ->str:
+    def default_ending_date() -> str:
         """
         Returns:
             str: tommorow's date
         """
-        return str(datetime.date.today()+ datetime.timedelta(days=1))
-    
+        return str(datetime.date.today() + datetime.timedelta(days=1))
+
     @property
     def id(self):
         return self.__id
-    
+
     @id.setter
-    def id(self,id):
+    def id(self, id):
         self.__id = id
-    
+
     @property
     def name(self) -> str:
         return self.__name
 
     @name.setter
     def name(self, new_name: str) -> None:
-        logger.info(f'Task name changed from {self.__name} to {new_name}')
+        logger.info(f"Task name changed from {self.__name} to {new_name}")
         self.__name = new_name
 
     @property
@@ -139,7 +138,9 @@ class Task:
 
     @starting_date.setter
     def starting_date(self, new_starting_date: str) -> None:
-        logger.info(f'Task starting date changed from {self.__starting_date} to {new_starting_date}')
+        logger.info(
+            f"Task starting date changed from {self.__starting_date} to {new_starting_date}"
+        )
         self.__starting_date = new_starting_date
 
     @property
@@ -148,7 +149,9 @@ class Task:
 
     @ending_date.setter
     def ending_date(self, new_ending_date: str) -> None:
-        logger.info(f'Task ending date changed from {self.__ending_date} to {new_ending_date}')
+        logger.info(
+            f"Task ending date changed from {self.__ending_date} to {new_ending_date}"
+        )
         self.__ending_date = new_ending_date
 
     @property
@@ -157,7 +160,9 @@ class Task:
 
     @description.setter
     def description(self, new_description: str) -> None:
-        logger.info(f'Task description changed from {self.__description} to {new_description}')
+        logger.info(
+            f"Task description changed from {self.__description} to {new_description}"
+        )
         self.__description = new_description
 
     @property
@@ -166,7 +171,7 @@ class Task:
 
     @users.setter
     def users(self, new_users: list) -> None:
-        logger.info(f'Task users changed to {new_users}')
+        logger.info(f"Task users changed to {new_users}")
         self.__users = new_users
 
     @property
@@ -192,7 +197,7 @@ class Task:
             file.write(f"{id} {user} {date} {text}\n")
         comment = Comment(text, date, user, id)
         self.__comments.append(comment)
-        logger.info(f'Comment added to task {task_id} by user {user}: {text}')
+        logger.info(f"Comment added to task {task_id} by user {user}: {text}")
 
     @property
     def priority(self) -> int:
@@ -200,16 +205,15 @@ class Task:
 
     @priority.setter
     def priority(self, new_priority: int) -> None:
-        logger.info(f'Task priority changed from {self.__priority} to {new_priority}')
+        logger.info(f"Task priority changed from {self.__priority} to {new_priority}")
         self.__priority = new_priority
-    
-    
-    def add_user(self,username:str):
-        self.__users.append(username)    
-    
-    def remove_user(self,username:str):
+
+    def add_user(self, username: str):
+        self.__users.append(username)
+
+    def remove_user(self, username: str):
         self.__users.remove(username)
-    
+
     def get_dict(self):
         dic = {
             "id": self.__id,
@@ -226,19 +230,14 @@ class Task:
 
 class Project:
     def __init__(
-        self,
-        name: str,
-        tasks: list[Task],
-        users: list[str],
-        leader: str,
-        id:str
+        self, name: str, tasks: list[Task], users: list[str], leader: str, id: str
     ) -> None:
         self.__name = name
         self.__id = id
         self.__leader = leader
         self.__tasks = tasks
         self.__users = users
-        logger.info(f'Project created: {self.__name} with ID: {self.__id}')
+        logger.info(f"Project created: {self.__name} with ID: {self.__id}")
 
     @property
     def name(self) -> str:
@@ -267,25 +266,23 @@ class Project:
 
     def add_user(self, new_user: str) -> bool:
         self.__users.append(new_user)
-        
 
     def remove_user(self, user: str) -> bool:
         if user in self.__users:
             self.__users.remove(user)
-            logger.info(f'User {user} removed from project {self.__name}')
+            logger.info(f"User {user} removed from project {self.__name}")
             return True
-        logger.warning(f'Failed to remove user {user}: user not in project')
+        logger.warning(f"Failed to remove user {user}: user not in project")
         return False
-    
+
     def get_task(self, task):
         _index = [_task.id for _task in self.__tasks].index(task.id)
         task = self.__tasks[_index]
-        logger.info(f'Fetched task {task.name} from project {self.__name}')
+        logger.info(f"Fetched task {task.name} from project {self.__name}")
         return task
 
     def add_task(self, task) -> bool:
         self.__tasks.append(task)
-            
 
     def remove_task(self, task) -> bool:
         self.__tasks.remove(task)
@@ -296,9 +293,10 @@ class Project:
             "id": self.__id,
             "tasks": [task.get_dict() for task in self.__tasks],
             "users": self.__users,
-            "leader": self.__leader
+            "leader": self.__leader,
         }
         return dic
+
 
 class ProjectController:
     @staticmethod
@@ -321,20 +319,9 @@ class ProjectController:
                     continue
                 tasks_data = project_keywords["tasks"]
                 del project_keywords["tasks"]
-                
-                # Create Task objects correctly
-                tasks = [Task(
-                    name=task_data['name'],
-                    state=task_data['state'],
-                    starting_date=task_data['starting_date'],
-                    ending_date=task_data['ending_date'],
-                    description=task_data['description'],
-                    users=task_data['users'],
-                    comments=[Comment(**comment_data) for comment_data in task_data['comments']],
-                    priority=task_data['priority']
-                ) for task_data in tasks_data]
-                
+                tasks = [Task(**task_data) for task_data in tasks_data]
                 project_keywords["tasks"] = tasks
+
                 projects.append(Project(**project_keywords))
         return projects
 
@@ -345,23 +332,23 @@ class ProjectController:
             json.dump(data, file)
 
     @staticmethod
-    def add_project(username,project):
+    def add_project(username, project):
         projects = ProjectController.get_projects(username)
         projects.append(project)
         ProjectController.save_projects(projects)
 
     @staticmethod
-    def remove_project(username,project):
+    def remove_project(username, project):
         projects = ProjectController.get_projects(username)
         projects.remove(project)
         ProjectController.save_projects(projects)
 
     @staticmethod
-    def update_project(username,project:Project):
+    def update_project(username, project: Project):
         print(username)
         projects = ProjectController.get_projects(username)
         print(projects)
-        
+
         ids = [_project.id for _project in projects]
         print(ids)
         projects.pop(ids.index(project.id))
@@ -369,16 +356,15 @@ class ProjectController:
         ProjectController.save_projects(projects)
 
     @staticmethod
-    def get_project(username,project_id):
+    def get_project(username, project_id):
         projects = ProjectController.get_projects(username)
         project_ids = [project.id for project in projects]
         if project_id not in project_ids:
             return None
 
         return projects
-    
+
     @staticmethod
     def exists(name):
         projects = ProjectController.get_projects()
         return any(project.name == name for project in projects)
-    
