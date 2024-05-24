@@ -1,8 +1,29 @@
 import re
+import logging
 import os
 import json
 from project import ProjectController, Project,Task
 
+# Set up logger
+logger = logging.getLogger('user_logger')
+logger.setLevel(logging.INFO)
+
+# Create a file handler
+file_handler = logging.FileHandler('user_actions.log')
+file_handler.setLevel(logging.INFO)
+
+# Create a console handler
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+
+# Create a formatter and set it for the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+console_handler.setFormatter(formatter)
+
+# Add handlers to the logger
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
 
 class User:
     def __init__(self, username: str, password: str, email: str, enabled: bool) -> None:
@@ -10,6 +31,7 @@ class User:
         self.__password = password
         self.__email = email
         self.__enabled = enabled
+        logger.info(f'User created: {self.__username}')
 
     @property
     def username(self) -> str:
@@ -17,10 +39,8 @@ class User:
 
     @username.setter
     def username(self, new_username: str) -> bool:
-        if UserController.exists(new_username):
-            return False
+        logger.info(f'Username changed from {self.__username} to {new_username}')
         self.__username = new_username
-        return True
 
     @property
     def password(self) -> str:
@@ -28,8 +48,7 @@ class User:
 
     @password.setter
     def password(self, new_password: str) -> bool:
-        if not UserController.password_check(new_password):
-            return False
+        logger.info(f'Password changed for user {self.__username}')
         self.__password = new_password
         return True
 
@@ -39,10 +58,8 @@ class User:
 
     @email.setter
     def email(self, new_email: str) -> bool:
-        if not UserController.email_check(new_email):
-            return False
+        logger.info(f'Email changed for user {self.__username} to {new_email}')
         self.__email = new_email
-        return True
 
     @property
     def enabled(self):
@@ -50,6 +67,7 @@ class User:
 
     @enabled.setter
     def enabled(self, new_enabled: bool) -> None:
+        logger.info(f'User {self.__username} enabled status changed to {new_enabled}')
         self.__enabled = new_enabled
 
     @property
@@ -71,7 +89,6 @@ class User:
             "email": self.__email,
             "enabled": self.__enabled,
         }
-        return dic
 
 
 # all the data saving and reading should be encrypted in future
