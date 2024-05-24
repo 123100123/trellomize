@@ -4,26 +4,22 @@ import os
 import json
 from project import ProjectController, Project,Task
 
-# Set up logger
-logger = logging.getLogger('user_logger')
-logger.setLevel(logging.INFO)
+# Create a logger
+logger = logging.getLogger(__name__)
 
-# Create a file handler
-file_handler = logging.FileHandler('user_actions.log')
-file_handler.setLevel(logging.INFO)
+# Set the level of this logger. This level will be used to filter out logs
+logger.setLevel(logging.DEBUG)
 
-# Create a console handler
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
+# Create a file handler for outputting log messages to a file
+handler = logging.FileHandler('user.log')
 
-# Create a formatter and set it for the handlers
+# Create a formatter and add it to the handler
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-file_handler.setFormatter(formatter)
-console_handler.setFormatter(formatter)
+handler.setFormatter(formatter)
 
-# Add handlers to the logger
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
+# Add the handler to the logger
+logger.addHandler(handler)
+
 
 class User:
     def __init__(self, username: str, password: str, email: str, enabled: bool) -> None:
@@ -31,7 +27,6 @@ class User:
         self.__password = password
         self.__email = email
         self.__enabled = enabled
-        logger.info(f'User created: {self.__username}')
 
     @property
     def username(self) -> str:
@@ -131,6 +126,7 @@ class UserController:
         users = UserController.get_users()
         users.append(user)
         UserController.save_users(users)
+        logger.info(f'User created: {user.__username}')
         return True
 
     @staticmethod

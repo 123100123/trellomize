@@ -8,29 +8,8 @@ import datetime
 import re
 from enum import Enum
 
-# from comment import Comment
-
-# Set up logger
-logger = logging.getLogger("task_project_logger")
-logger.setLevel(logging.INFO)
-
-# Create a file handler
-file_handler = logging.FileHandler("task_project.log")
-file_handler.setLevel(logging.INFO)
-
-# Create a console handler
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
-
-# Create a formatter and set it for the handlers
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(formatter)
-console_handler.setFormatter(formatter)
-
-# Add handlers to the logger
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
-
+# Get the same logger
+logger = logging.getLogger('user')
 
 class Task:
     class State(Enum):
@@ -237,7 +216,6 @@ class Project:
         self.__leader = leader
         self.__tasks = tasks
         self.__users = users
-        logger.info(f"Project created: {self.__name} with ID: {self.__id}")
 
     @property
     def name(self) -> str:
@@ -336,6 +314,7 @@ class ProjectController:
         projects = ProjectController.get_projects(username)
         projects.append(project)
         ProjectController.save_projects(projects)
+        logger.info(f"Project created: {project.__name} with ID: {project.__id}")
 
     @staticmethod
     def remove_project(username, project):

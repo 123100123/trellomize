@@ -146,8 +146,6 @@ class LoginMenu:
                 break
 
 
-
-
 class TaskMenu:
     def __init__(self, user: User, project: Project, task: Task) -> None:
         self.__task : Task = task
