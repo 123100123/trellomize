@@ -157,12 +157,18 @@ class Task:
     def comments(self) -> list:
         return self.__comments
 
-    def add_comment(self, user: str, task_id: str):
+    def add_comment(self, user: str):
         text = input("Enter the comment text: ")
         date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        comments_file_path = f"Tasks/{task_id}/comments.txt"
+        task_id = self.__id
+        tasks_dir = "Tasks"
+        task_dir = os.path.join(tasks_dir, str(task_id))
+        comments_file_path = os.path.join(task_dir, "comments.txt")
+        
+        if not os.path.exists(task_dir):
+            os.makedirs(task_dir, exist_ok=True)
+        
         if not os.path.exists(comments_file_path):
-            os.makedirs(os.path.dirname(comments_file_path), exist_ok=True)
             id = 1
         else:
             with open(comments_file_path, "r") as file:
@@ -172,8 +178,10 @@ class Task:
                     id = int(last_line.split()[0]) + 1
                 else:
                     id = 1
+
         with open(comments_file_path, "a") as file:
             file.write(f"{id} {user} {date} {text}\n")
+        
         comment = Comment(text, date, user, id)
         self.__comments.append(comment)
         logger.info(f"Comment added to task {task_id} by user {user}: {text}")
