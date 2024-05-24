@@ -2,13 +2,11 @@ import json
 import logging
 import os
 import datetime
-from comment import Comment
 import uuid
 import datetime
 import re
 from enum import Enum
 
-# Get the same logger
 logger = logging.getLogger('user')
 
 class Task:
@@ -53,10 +51,11 @@ class Task:
             os.makedirs(task_dir, exist_ok=True)
     
     def manage_actions(self, username:str, action: str):
-        change = f"{username}: {action}"
-        logger.info(change)
+        history_change = f"{username}: {action}"
+        logger_change = f"{username}: {action} in {self.__id} task"
+        logger.info(logger_change)
         with open(f"tasks/{self.__id}/history.txt", "a+") as file:
-            file.write(change)
+            file.write(history_change)
         
             
     @staticmethod
@@ -127,10 +126,8 @@ class Task:
         return self.__starting_date
 
     @starting_date.setter
-    def starting_date(self, new_starting_date: str) -> None:
-        logger.info(
-            f"Task starting date changed from {self.__starting_date} to {new_starting_date}"
-        )
+    def starting_date(self,username :str , new_starting_date: str) -> None:
+        self.manage_actions(username, f"starting date changed from {self.__starting_date} to {new_starting_date}")
         self.__starting_date = new_starting_date
 
     @property
@@ -138,10 +135,8 @@ class Task:
         return self.__ending_date
     
     @ending_date.setter
-    def ending_date(self, new_ending_date: str) -> None:
-        logger.info(
-            f"Task ending date changed from {self.__ending_date} to {new_ending_date}"
-        )
+    def ending_date(self, username:str , new_ending_date: str) -> None:
+        self.manage_actions(username, f"End date changed from {self.__starting_date} to {new_ending_date}")
         self.__ending_date = new_ending_date
 
     @property
@@ -149,10 +144,8 @@ class Task:
         return self.__description
 
     @description.setter
-    def description(self, user:str ,new_description: str) -> None:
-        logger.info(
-            f"Task description changed from {self.__description} to {new_description} by {user}"
-        )
+    def description(self, username:str ,new_description: str) -> None:
+        self.manage_actions(username , f"description changed from {self.__starting_date} to {new_description}")
         self.__description = new_description
 
     @property
@@ -163,31 +156,37 @@ class Task:
     def comments(self) -> list:
         return self.__comments
     
-        
-    
-    def add_comment(self,user: str,text):
+    def add_comment(self,username: str,text):
         self.create_base_file()
         date = self.current_date()
         
-        
         with open(f"tasks/{self.__id}/comment.txt", "a+") as file:
-            file.write(f"{user}({date}): {text}\n")
+            file.write(f"{username}({date}): {text}\n")
           
+        self.manage_actions(username , f"Comment added to task {self.__id} -> {text}")
+    
+    @property
+    def read_comments(self) -> str:
+        try:
+            with open(f"tasks/{self.__id}/comment.txt", 'r') as file:
+                comments = file.read()
+            
+            return comments
+        except FileNotFoundError:
+            return "The file does not exist."
         
-        logger.info(f"Comment added to task {self.__id} by user {user}: {text}")
-
     @property
     def priority(self) -> int:
         return self.__priority
 
     @priority.setter
-    def priority(self, new_priority: int) -> None:
-        logger.info(f"Task priority changed from {self.__priority} to {new_priority}")
+    def priority(self,username:str, new_priority: int) -> None:
+        self.manage_actions(username , f"changed priority from {self.__priority} to {new_priority}")
         self.__priority = new_priority
 
-    def add_user(self, username: str):
+    def add_user(self, adder_username :str ,username: str):
         self.__users.append(username)
-        logger.info(f"user {username} added to task {self.__id} by {self.__le}")
+        self.manage_actions(adder_username , f"added {username}")
 
     def remove_user(self, username: str):
         self.__users.remove(username)
@@ -244,25 +243,22 @@ class Project:
     def add_user(self, new_user: str) -> bool:
         self.__users.append(new_user)
 
-    def remove_user(self, user: str) -> bool:
-        if user in self.__users:
+    def remove_user(self, user: str) -> None:
             self.__users.remove(user)
-            logger.info(f"User {user} removed from project {self.__name}")
-            return True
-        logger.warning(f"Failed to remove user {user}: user not in project")
-        return False
+            logger.info(f"{self.leader} removed user {user} from project {self.__id}")
 
     def get_task(self, task):
         _index = [_task.id for _task in self.__tasks].index(task.id)
         task = self.__tasks[_index]
-        logger.info(f"Fetched task {task.name} from project {self.__name}")
         return task
 
-    def add_task(self, task) -> bool:
+    def add_task(self, task) -> None:
         self.__tasks.append(task)
+        logger.info(f"{self.__leader} added {task.id} task")
 
-    def remove_task(self, task) -> bool:
+    def remove_task(self, task) -> None:
         self.__tasks.remove(task)
+        logger.info(f"{self.__leader} removed {task.id} task")
 
     def get_dict(self):
         dic = {
