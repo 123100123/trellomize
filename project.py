@@ -119,34 +119,38 @@ class Task:
         return self.__state
 
     @state.setter
-    def state(self, username:str ,new_state: State) -> None:
-        self.manage_actions(username,f"changed name from {self.__state.name} to {new_state.name}")
+    def state(self, args) -> None:
+        username, new_state = args
+        self.manage_actions(username, f"changed state from {self.__state.name} to {new_state.name}")
         self.__state = new_state
-
+        
     @property
     def starting_date(self) -> str:
         return self.__starting_date
 
     @starting_date.setter
-    def starting_date(self, username: str, new_starting_date: str) -> None:
-        self.__starting_date = new_starting_date
+    def starting_date(self, args) -> None:
+        username, new_starting_date = args
         self.manage_actions(username, f"starting date changed from {self.__starting_date} to {new_starting_date}")
+        self.__starting_date = new_starting_date
 
     @property
     def ending_date(self) -> str:
         return self.__ending_date
 
     @ending_date.setter
-    def ending_date(self, username: str, new_ending_date: str) -> None:
-        self.__ending_date = new_ending_date
+    def ending_date(self, args) -> None:
+        username, new_ending_date = args
         self.manage_actions(username, f"ending date changed from {self.__ending_date} to {new_ending_date}")
+        self.__ending_date = new_ending_date
 
     @property
     def description(self) -> str:
         return self.__description
 
     @description.setter
-    def description(self, username: str, new_description: str) -> None:
+    def description(self, args) -> None:
+        username, new_description = args
         self.manage_actions(username, f"description changed from {self.__description} to {new_description}")
         self.__description = new_description
 
@@ -182,7 +186,8 @@ class Task:
         return self.__priority
 
     @priority.setter
-    def priority(self, username: str, new_priority: int) -> None:
+    def priority(self, args) -> None:
+        username, new_priority = args
         self.manage_actions(username, f"changed priority from {self.__priority} to {new_priority}")
         self.__priority = new_priority
         
