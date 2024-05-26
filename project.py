@@ -58,7 +58,6 @@ class Task:
         logger.info(logger_change)
         with open(f"tasks/{self.__id}/history.txt", "a+") as file:
             file.write(history_change+"\n")
-        
             
     @staticmethod
     def generate_id() -> str:
@@ -129,26 +128,26 @@ class Task:
         return self.__starting_date
 
     @starting_date.setter
-    def starting_date(self,username :str , new_starting_date: str) -> None:
-        self.manage_actions(username, f"starting date changed from {self.__starting_date} to {new_starting_date}")
+    def starting_date(self, username: str, new_starting_date: str) -> None:
         self.__starting_date = new_starting_date
+        self.manage_actions(username, f"starting date changed from {self.__starting_date} to {new_starting_date}")
 
     @property
     def ending_date(self) -> str:
         return self.__ending_date
-    
+
     @ending_date.setter
-    def ending_date(self, username:str , new_ending_date: str) -> None:
-        self.manage_actions(username, f"End date changed from {self.__starting_date} to {new_ending_date}")
+    def ending_date(self, username: str, new_ending_date: str) -> None:
         self.__ending_date = new_ending_date
+        self.manage_actions(username, f"ending date changed from {self.__ending_date} to {new_ending_date}")
 
     @property
     def description(self) -> str:
         return self.__description
 
     @description.setter
-    def description(self, username:str ,new_description: str) -> None:
-        self.manage_actions(username , f"description changed from {self.__starting_date} to {new_description}")
+    def description(self, username: str, new_description: str) -> None:
+        self.manage_actions(username, f"description changed from {self.__description} to {new_description}")
         self.__description = new_description
 
     @property
@@ -177,16 +176,16 @@ class Task:
             return comments
         except FileNotFoundError:
             return "The file does not exist."
-        
+
     @property
     def priority(self) -> int:
         return self.__priority
 
     @priority.setter
-    def priority(self,username:str, new_priority: int) -> None:
-        self.manage_actions(username , f"changed priority from {self.__priority} to {new_priority}")
+    def priority(self, username: str, new_priority: int) -> None:
+        self.manage_actions(username, f"changed priority from {self.__priority} to {new_priority}")
         self.__priority = new_priority
-
+        
     def add_user(self, adder_username :str ,username: str):
         self.__users.append(username)
         self.manage_actions(adder_username , f"added {username}")

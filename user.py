@@ -51,18 +51,6 @@ class User:
         logger.info(f'User {self.__username} enabled status changed to {new_enabled}')
         self.__enabled = new_enabled
 
-    @property
-    def projects(self):
-        return self.__projects
-
-    def add_project(self, project: Project) -> None:
-        self.__projects.append(project.id)
-        ProjectController.add_project(self.__username, project)
-
-    def remove_project(self, project: Project) -> None:
-        self.__projects.remove(self.__username, project.id)
-        ProjectController.remove_project(self.__username, project)
-
     def get_dict(self) -> dict:
         dic = {
             "username": self.__username,
@@ -70,6 +58,7 @@ class User:
             "email": self.__email,
             "enabled": self.__enabled,
         }
+        return dic
 
 
 # all the data saving and reading should be encrypted in future
