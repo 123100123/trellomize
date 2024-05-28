@@ -1,488 +1,530 @@
 from user import UserController, User, ProjectController, Project, Task
+from rich.console import Console
+from rich.table import Table
+from rich.panel import Panel
+from rich.layout import Layout
+import msvcrt
 
 
 class Menu:
+    console = Console()
+
     @staticmethod
-    def Choose(options):
+    def getch():
+        char = msvcrt.getch()
+        if char == b"\x00":  # Arrow key prefix
+            char += msvcrt.getch()
+            if char == b"\x00H":
+                return "up"
+            elif char == b"\x00P":
+                return "down"
+        elif char == b"\r":  # Enter key
+            return "enter"
+        else:
+            return char
+
+    @classmethod
+    def print_table(cls, header, data, selected_index):
+        table = Table(width=100)
+        table.add_column(header, justify="center")
+
+        for i, item in enumerate(data):
+            if i == selected_index:
+                table.add_row(f"[bold cyan]> {item}[/bold cyan]")
+            else:
+                table.add_row(f"{item}")
+        cls.console.print(table, justify="center")
+
+    @classmethod
+    def choose(cls, header, *options_list):
+        values = []
+        data = []
+        for options in options_list:
+            if isinstance(options, dict):
+                values.extend(list(options.keys()))
+                data.extend([f"{key}: {value}" for key, value in options.items()])
+            elif isinstance(options, list):
+                data.extend(options)
+                values.extend(options)
+
+        selected_index = 0
         while True:
-            for i in range(len(options)):
-                print(i + 1, options[i], sep=". ")
+            cls.console.clear()
+            cls.print_table(
+                header, data, selected_index
+            )  # Passing the original options for printing
+            key = cls.getch()
 
-            choice = input("Choose An Option: ")
-            if not choice.isdigit():
-                break
+            if key == "up":
+                selected_index = (selected_index - 1) % len(data)
+            elif key == "down":
+                selected_index = (selected_index + 1) % len(data)
+            elif key == "enter":
+                return values[selected_index]
 
-            choice = int(choice)
-            if 1 <= choice <= len(options):
-                return choice
+    @classmethod
+    def get_info(cls, description):
+        cls.console.clear()
+        return cls.console.input(description)
+
+    @classmethod
+    def prompt(cls, info):
+        cls.console.clear()
+        panel = Panel(info, width=100, title="[red]!Error!", style="red")
+        cls.console.print(panel, "[cyan]> ...", justify="center")
+        cls.getch()
 
     @staticmethod
     def back(inp):
         return inp.isdigit() and int(inp) == 0
 
-    @staticmethod
-    def skip(inp):
-        return inp.isdigit() and int(inp) == 1
+    # @staticmethod
+    # def skip(inp):
+    #     return inp.isdigit() and int(inp) == 1
 
 
 class LoginMenu:
-    @staticmethod
-    def input_username():
-        while True:
-            username = input("username  (0 to go back): ")
-            if Menu.back(username):
-                return None
-            if not UserController.exists(username):
-                return username
-
-            print("username already exists")
-
-    @staticmethod
-    def input_email():
-        while True:
-            email = input("email  (0 to go back): ")
-            if Menu.back(email):
-                return None
-            if not UserController.email_check(email):
-                print("please input a correct email")
-                continue
-            if UserController.exists(email):
-                print("email already exists")
-                continue
-
-            return email
-
-    @staticmethod
-    def input_password():
-        while True:
-            password = input("password  (0 to go back): ")
-            if Menu.back(password):
-                return None
-            if UserController.password_check(password):
-                return password
-
-            print("password must be atleast 8 characters")
-
-    @staticmethod
-    def sign_up():
-        username: str
-        email: str
-        password: str
-        while True:
-            username = LoginMenu.input_username()
-            if username == None:
-                return None
-            if UserController.exists(username):
-                print("username already exists")
-                continue
-
-            break
+    @classmethod
+    def sign_up(cls):
+        dic = {"Username": "", "Email": "", "Password": ""}
+        ls = ["Sign Up", "Back"]
 
         while True:
-            email = LoginMenu.input_email()
-            if email == None:
+            choice = Menu.choose("Sign Up", dic, ls)
+
+            if choice in list(dic.keys()):
+                inp = Menu.get_info(f"Input {choice}: ")
+                if inp != "":
+                    dic[choice] = inp
+
+            elif choice == ls[0]:
+                if "" in list(dic.values()):
+                    Menu.prompt("Please Fill All The Fields")
+                    
+                elif UserController.exists(dic["Username"]):
+                    Menu.prompt("Username Already Exists")
+                    
+                elif UserController.exists(dic["Email"]):
+                    Menu.prompt("Email Already Exists")
+                    
+                elif not UserController.email_check(dic["Email"]):
+                    Menu.prompt("Please Enter A Valid Email")
+                    
+                elif not UserController.password_check(dic["Password"]):
+                    Menu.prompt("Password Must Be At Least 8 Characters")
+                else:
+                    break
+            elif choice == ls[1]:
                 return None
-            if UserController.exists(email):
-                print("email already exists")
-                continue
-            break
 
-        while True:
-            password = LoginMenu.input_password()
-            if password == None:
-                return None
-
-            break
-
-        user = User(username, password, email, True, [])
+        user = User(dic["Username"], dic["Password"], dic["Email"], True)
         UserController.add_user(user)
+
         return user
 
-    @staticmethod
-    def log_in():
+    def check_user(data, password):
+        if UserController.exists(data):
+            if UserController.get_user(data).password == password:
+                return True
+        return False
+
+    @classmethod
+    def log_in(cls):
+        dic = {"Username/Email": "", "Password": ""}
+        ls = ["Login", "Back"]
+
         while True:
-            info = input("email or username(0 to go back): ")
-            if Menu.back(info):
+            choice = Menu.choose("Login", dic, ls)
+            if choice in list(dic.keys()):
+                inp = Menu.get_info(f"Input {choice}: ")
+                if inp != "":
+                    dic[choice] = inp
+
+            elif choice == ls[0]:
+                if "" in list(dic.values()):
+                    Menu.prompt("Please Fill All The Fields")
+
+                elif not cls.check_user(dic["Username/Email"], dic["Password"]):
+                    Menu.prompt("Usrname Or Password Incorrect")
+                else:
+                    break
+
+            elif choice == ls[1]:
                 return None
 
-            if not UserController.exists(info):
-                print("user not found")
-                continue
+        return UserController.get_user(dic["Username/Email"])
 
-            password = input("password(0 to go back): ")
-            if Menu.back(password):
-                return None
-
-            user = UserController.get_user(info)
-            if not user.enabled:
-                print("user not found")
-                continue
-            if user.password != password:
-                print("wrong password")
-                continue
-
-            return user
-
-    @staticmethod
-    def get_user():
+    @classmethod
+    def get_user(cls):
         while True:
             options = ["Login", "Sign Up", "Exit"]
-            choice = Menu.Choose(options)
-            if choice == 1:
-                while True:
-                    user = LoginMenu.log_in()
-                    if user == None:
-                        break
-                    return user
+            choice = Menu.choose("login menu", options)
+            if choice == options[0]:
+                user = cls.log_in()
+                if user == None:
+                    continue
+                return user
 
-            elif choice == 2:
-                while True:
-                    user = LoginMenu.sign_up()
-                    if user == None:
-                        break
-                    return user
+            elif choice == options[1]:
+                user = cls.sign_up()
+                if user == None:
+                    continue
+                return user
 
-            elif choice == 3:
-                break
+            elif choice == options[2]:
+                return None
 
 
 class TaskMenu:
-    def __init__(self, user: User, project: Project, task: Task) -> None:
-        self.__task : Task = task
-        self.__project = project
+    def __init__(self, user, project, task) -> None:
         self.__user = user
+        self.__project = project
+        self.__task: Task = task
 
-    def show_info(self):
-        print(*self.__task.get_dict(), sep="\n----\n")
-    
     def edit_info(self):
         if self.__user.username not in self.__task.users:
-            print("you are not assigned to this task")
+            Menu.prompt("You Are Not Assigned To This Task")
             return
 
+        dic = {
+                "Name": self.__task.name,
+                "State": self.__task.state.name,
+                "Priority": self.__task.priority.name,
+                "Starting Date": self.__task.starting_date,
+                "Ending Date": self.__task.ending_date,
+            }
+        
+        ls = ["Update Info","Back"]
+        
         while True:
-            options = [
-                "change name",
-                "change priority",
-                "chnage state",
-                "change ending date",
-                "change the description",
-                "back",
-            ]
-            ProjectController.update_project(self.__user.username, self.__project)
-            choice = Menu.Choose(options)
-            if choice == 1:
-                name = input("choose a new name(0 to go back)")
-                if Menu.back(name):
-                    continue
-                self.__task.name = (self.__user.username,name)
-
-            elif choice == 2:
-                options = [_priority.name for _priority in Task.Priority] + ["back"]
-                choice = Menu.Choose(options)
-                print(choice)
-                if choice == len(options):
-                    continue
-
-                self.__task.priority = Task.Priority[options[choice - 1]]
-
-            elif choice == 3:
-                options = [_state.name for _state in Task.State] + ["back"]
-                choice = Menu.Choose(options)
-                if choice == len(options):
-                    continue
-
-                self.__task.state = Task.State[options[choice - 1]]
-
-            elif choice == 4:
-                date: str
-                while True:
-                    date = input("enter a valid date YYYY-MM-DD (0 to go back): ")
-                    if Menu.back(date):
-                        break
-
-                    if Task.check_date(self.__task.starting_date, date):
-                        self.__task.ending_date = date
-                        break
-
-                    print("date not valid")
-                
-            elif choice == 5:
-                description = input("new description(0 to go back): ")
-                self.__task.description = description
-                
-            elif choice == 6:
-                break
-        
-    def add_user(self):
-        # all_users = [_user for _user in self.__project.users]
-        # task_users = [_user.username for _user in self.__task.users]
-        remaining_users = [_user for _user in self.__project.users if _user not in self.__task.users]
-    
-        options = remaining_users + ["back"]
-        choice = Menu.Choose(options)
-        
-        if choice != len(options):
-            self.__task.add_user(remaining_users[choice-1])
-        
-        ProjectController.update_project(self.__user.username,self.__project)
-        
-    def remove_user(self):
-        options = self.__task.users + ["back"]
-        choice = Menu.Choose(options)
-        
-        if choice != len(options):
-            removed_user = options[choice-1]
-            
-            if removed_user != self.__project.leader:
-                self.__task.remove_user(options[choice-1])
+            choice = Menu.choose("New Task", dic, ls)
+            if choice in list(dic.keys()):
+                if choice == "State":
+                    choice = Menu.choose(
+                        "Choose The State",
+                        [_state.name for _state in Task.State] + ["Back"],
+                    )
+                    if choice != "Back":
+                        dic["State"] = choice
+                elif choice == "Priority":
+                    choice = Menu.choose(
+                        "Choose The Priority",
+                        [_priority.name for _priority in Task.Priority] + ["Back"],
+                    )
+                    if choice != "Back":
+                        dic["Priority"] = choice
+                else:
+                    inp = Menu.get_info(f"Input {choice}: ")
+                    if inp != "":
+                        dic[choice] = inp
+            elif choice == ls[0]:
+                if dic["Name"] == "":
+                    Menu.prompt("Please Input A Name")
+                elif not Task.check_date(dic["Starting Date"]) or not Task.check_date(
+                    dic["Starting Date"], dic["Ending Date"]
+                ):
+                    Menu.prompt("Please Input Valid Dates")
+                else:
+                    break
             else:
-                print("you can't remove the leader")  
+                return
+        
+        self.__task.name = (self.__user.username,dic["Name"])
+        self.__task.starting_date = (self.__user.username,dic["Starting Date"])
+        self.__task.ending_date = (self.__user.username,dic["Ending Date"])
+        self.__task.state = (self.__user.username,Task.State[dic["State"]])
+        self.__task.priority = (self.__user.username,Task.Priority[dic["Priority"]])
         
         ProjectController.update_project(self.__user.username,self.__project)
-        
-    def user_manager(self):
-        print(self.__user.username)
-        print(self.__project.leader)
-        if self.__user.username != self.__project.leader:
-            print("you are not the leader")
+    
+    def add_user(self):
+        existing_users = [_user for _user in self.__project.users if _user not in self.__task.users]
+        if not existing_users:
+            Menu.prompt("No Users Available To Add")
             return
         
-        options = ["add user","remove user","back"]
+        while True:
+            choice = Menu.choose("Add A New Assignee",existing_users+["Back"])
+            
+            if choice == "Back":
+                break
+            
+            self.__task.add_user(self.__user.username,choice)
+            existing_users.remove(choice)
+            ProjectController.update_project(self.__user.username,self.__project)
+    
+    def remove_user(self):
+        while True:
+            choice = Menu.choose("Remove Users",self.__task.users+["Back"])
+            
+            if choice == "Back":
+                break
+            if choice == self.__project.leader:
+                Menu.prompt("You Can't Remove The Leader")
+                continue
+            
+            self.__task.remove_user(self.__user.username,choice)
+            ProjectController.update_project(self.__user.username,self.__project)
+    
+        
+    def manage_users(self):
+        if self.__user.username != self.__project.leader:
+            Menu.prompt("You Are Not The Leader Of This Project")
+            return
+        
+        options = ["Add A New User","Remove A User","Back"]
         
         while True:
-            choice = Menu.Choose(options)
-            if choice == 1:
+            choice = Menu.choose("Manage Users",options)
+            
+            if choice == options[0]:
                 self.add_user()
-            elif choice == 2:
+            elif choice == options[1]:
                 self.remove_user()
             else:
                 break
-
+        
+    
+    def comments(self):
+        pass
+    
+    def history(self):
+        pass
+    
+    
     def menu(self):
-        options = ["edit info", "manage users", "comments", "history", "back"]
+        options = ["Edit Info", "Manage Users", "Comments", "History", "Back"]
+
         while True:
-            # self.show_info()
-            choice = Menu.Choose(options)
-            if choice == 1:
+            choice = Menu.choose(self.__task.name, options)
+
+            if choice == options[0]:
                 self.edit_info()
-            elif choice == 2:
-                self.user_manager()
-            elif choice == 3:
-                pass #comments
-            elif choice == 4:
-                pass #history
-            elif choice == 5:
+            elif choice == options[1]:
+                self.manage_users()
+            elif choice == options[2]:
+                pass
+            elif choice == options[3]:
+                pass
+            else:
                 break
 
 
 class ProjectMenu:
-    def __init__(self, user: User, project: Project) -> None:
+    def __init__(self, user, project) -> None:
         self.__user = user
         self.__project = project
 
-    def showtasks(self):
-        tasks = self.__project.tasks
-        print(*[(task.name, task.id) for task in tasks], sep="---------")
+    def tasks_table(self):
+        if not self.__project.tasks:
+            return None
 
-    def change_name(self):
-        while True:
-            new_name = input("new name(0 to go back): ")
-            if Menu.back(new_name):
-                break
-            if new_name == self.__project.name:
-                print("names must be diffrent")
-                continue
+        backlog = [
+            Panel(f"name: {_task.name}\nid: {_task.id}", expand=True)
+            for _task in self.__project.tasks
+            if _task.state == Task.State.BackLog
+        ]
+        todo = [
+            Panel(f"name: {_task.name}\nid: {_task.id}", expand=True)
+            for _task in self.__project.tasks
+            if _task.state == Task.State.ToDo
+        ]
+        doing = [
+            Panel(f"name: {_task.name}\nid: {_task.id}", expand=True)
+            for _task in self.__project.tasks
+            if _task.state == Task.State.Doing
+        ]
+        done = [
+            Panel(f"name: {_task.name}\nid: {_task.id}", expand=True)
+            for _task in self.__project.tasks
+            if _task.state == Task.State.Done
+        ]
+        archived = [
+            Panel(f"name: {_task.name}\nid: {_task.id}", expand=True)
+            for _task in self.__project.tasks
+            if _task.state == Task.State.Archived
+        ]
 
-            self.__project.name = new_name
-            ProjectController.update_project(self.__user.username, self.__project)
-            break
+        tasks = [backlog, todo, doing, done, archived]
 
-    def add_user(self):
-        while True:
-            username = input("input username(0 to go back): ")
-            if not Menu.back(username):
-                if UserController.exists(username):
-                    if username not in self.__project.users:
-                        self.__project.add_user(username)
-                        print("user:", self.__user)
-                        ProjectController.update_project(
-                            self.__user.username, self.__project
-                        )
-                        break
-                    else:
-                        print("already in the project")
+        table = Table(title="tasks")
+        for state in Task.State:
+            table.add_column(state.name, justify="center")
+
+        max_tasks = max(len(_tasks) for _tasks in tasks)
+        for i in range(max_tasks):
+            row = []
+            for task_list in tasks:
+                if i < len(task_list):
+                    row.append(task_list[i])
                 else:
-                    print("username doesn't exist")
+                    row.append("")
+            table.add_row(*row)
+
+        return table
+
+    def choose_task(self) -> str:
+        while True:
+            table = self.tasks_table()
+            Menu.console.clear()
+            Menu.console.print(table,justify= "center")
+            if table == None:
+                Menu.prompt("No Tasks In This Project")
+                return None
+
+            inp = Menu.console.input("Input A Task ID(0 to go back): ")
+            if Menu.back(inp):
+                break
+            elif not inp in [_task.id for _task in self.__project.tasks]:
+                Menu.prompt("Please Enter A Valid ID")
             else:
-                break
-
-    def remove_user(self):
-        options = [*self.__project.users] + ["back"]
-        size = len(options)
-
-        while True:
-            choice = Menu.Choose(options) - 1
-
-            if choice == size - 1:
-                break
-
-            chosen_user = options[choice]
-            if self.__project.leader != chosen_user:
-                self.__project.remove_user(chosen_user)
-                ProjectController.update_project(self.__user.username, self.__project)
-                break
-
-            print("you can't remove the leader")
-
-    def manage_users(self):
-        while True:
-            options = ["add user", "remove user", "back"]
-            choice = Menu.Choose(options)
-            if choice == 1:
-                self.add_user()
-            elif choice == 2:
-                self.remove_user()
-            elif choice == 3:
-                break
-
-    def change_info(self):
-        options = ["change name", "manage users", "back"]
-        while True:
-            choice = Menu.Choose(options)
-            if choice == 1:
-                self.change_name()
-            elif choice == 2:
-                self.manage_users()
-            elif choice == 3:
-                break
-
-    def choose_task(self):
-        options = [(_task.name, _task.id) for _task in self.__project.tasks] + ["back"]
-        if len(options) == 1:
-            print("no tasks available")
-            return None
-        choice = Menu.Choose(options)
-        if choice == len(options):
-            return None
-
-        return self.__project.tasks[choice - 1]
+                return inp
 
     def add_task(self):
+        dic = {
+            "Name": "",
+            "State": Task.State.BackLog.name,
+            "Priority": Task.Priority.Low.name,
+            "Starting Date": Task.current_date(),
+            "Ending Date": Task.default_ending_date(),
+            "Description": "",
+        }
+        ls = ["Create Task", "Back"]
+
+        while True:
+            choice = Menu.choose("New Task", dic, ls)
+            if choice in list(dic.keys()):
+                if choice == "State":
+                    choice = Menu.choose(
+                        "Choose The State",
+                        [_state.name for _state in Task.State] + ["Back"],
+                    )
+                    if choice != "Back":
+                        dic["State"] = choice
+                elif choice == "Priority":
+                    choice = Menu.choose(
+                        "Choose The Priority",
+                        [_priority.name for _priority in Task.Priority] + ["Back"],
+                    )
+                    if choice != "Back":
+                        dic["Priority"] = choice
+                else:
+                    inp = Menu.get_info(f"Input {choice}: ")
+                    if inp != "":
+                        dic[choice] = inp
+            elif choice == ls[0]:
+                if dic["Name"] == "":
+                    Menu.prompt("Please Input A Name")
+                elif not Task.check_date(dic["Starting Date"]) or not Task.check_date(
+                    dic["Starting Date"], dic["Ending Date"]
+                ):
+                    Menu.prompt("Please Input Valid Dates")
+                else:
+                    break
+            else:
+                return
+
         id = Task.generate_id()
-
-        name = input("enter a name(0 to go back): ")
-        if Menu.back(name):
-            return
-
-        starting_date: str
-        while True:
-            starting_date = input(
-                "enter a starting date in (Y-M-D) form (0 to go back,1 to skip): "
-            )
-            if Menu.back(starting_date):
-                return
-
-            if Menu.skip(starting_date):
-                starting_date = Task.current_date()
-                break
-            else:
-                if Task.check_date(starting_date):
-                    break
-
-            print("please enter a valid date")
-
-        ending_date: str
-        while True:
-            ending_date = input(
-                "enter an edning date in (Y-M-D) form (0 to go back,1 to skip): "
-            )
-            if Menu.back(starting_date):
-                return
-
-            if Menu.skip(ending_date):
-                ending_date = Task.default_ending_date()
-                break
-
-            else:
-                if Task.check_date(starting_date, ending_date):
-                    break
-
-            print("please enter a valid date")
-
-        state: str
-        options = [_state.name for _state in Task.State] + ["skip", "back"]
-        choice = Menu.Choose(options)
-
-        if choice == len(options):
-            return
-
-        if choice == len(options) - 1:
-            state = Task.State.BackLog.name
-        else:
-            state = Task.State[options[choice - 1]].name
-
-        priority: str
-        options = [_priority.name for _priority in Task.Priority] + ["skip", "back"]
-        choice = Menu.Choose(options)
-        if choice == len(options):
-            return
-
-        if choice == len(options) - 1:
-            priority = Task.Priority.Low.name
-        else:
-            priority = Task.Priority[options[choice - 1]].name
-
-        description = input("put some description(0 to go back and 1 to skip): ")
-        if Menu.back(description):
-            return
-        elif Menu.skip(description):
-            description = ""
-
-        users = [self.__project.leader]
-
         task = Task(
-            id, name, state, priority, starting_date, ending_date, description, users
+            id,
+            dic["Name"],
+            dic["State"],
+            dic["Priority"],
+            dic["Starting Date"],
+            dic["Ending Date"],
+            dic["Description"],
+            [self.__user.username],
         )
+
         self.__project.add_task(task)
         ProjectController.update_project(self.__user.username, self.__project)
 
     def remove_task(self):
-        task = self.choose_task()
-        if task == None:
+        task_id = self.choose_task()
+        print(task_id)
+        Menu.getch()
+        if task_id == None:
             return
-        self.__project.remove_task(task)
+
+        self.__project.remove_task(task_id)
         ProjectController.update_project(self.__user.username, self.__project)
 
-    def task_manager(self):
-        options = ["open a task", "create a new task", "remove a task", "back"]
+    def manage_tasks(self):
+        if self.__project.leader != self.__user.username:
+            Menu.prompt("You Are Not The Leader Of This Project")
+            return
+        
+        options = ["Add A New Task", "Remove A Task", "Back"]
         while True:
-            choice = Menu.Choose(options)
-
-            if choice == 1:
-                task = self.choose_task()
-                if task != None:
-                    task_menu = TaskMenu(self.__user, self.__project, task)
-                    task_menu.menu()
-            elif choice == 2:
+            choice = Menu.choose("Manage Tasks", options)
+            if choice == options[0]:
                 self.add_task()
-            elif choice == 3:
-                print("you chose remove")
+            elif choice == options[1]:
                 self.remove_task()
-            elif choice == 4:
+            elif choice == options[2]:
+                break
+
+    def remove_user(self):
+        while True:
+            choice = Menu.choose(
+                "Choose A User To Remove", self.__project.users + ["Back"]
+            )
+            if choice != "Back":
+                if self.__project.leader != choice:
+                    self.__project.remove_user(choice)
+                    ProjectController.update_project(
+                        self.__user.username, self.__project
+                    )
+                else:
+                    Menu.prompt("You Can't Remove The Leader")
+            else:
+                break
+
+    def add_user(self):
+        while True:
+            inp = Menu.get_info("Input A Username/Email To Add (0 to go back): ")
+            if Menu.back(inp):
+                break
+            elif not UserController.exists(inp):
+                Menu.prompt("User Not Found")
+            else:
+                if inp in self.__project.users:
+                    Menu.prompt("User Already In The Project")
+                else:
+                    self.__project.add_user(inp)
+                    ProjectController.update_project(
+                        self.__user.username, self.__project
+                    )
+                    break
+
+    def manage_users(self):
+        options = ["Add User", "Remove User", "Back"]
+
+        while True:
+            choice = Menu.choose("Manage Users", options)
+
+            if choice == options[0]:
+                self.add_user()
+            elif choice == options[1]:
+                self.remove_user()
+            else:
                 break
 
     def menu(self):
-        options = ["tasks", "change project info", "back"]
+        ls = ["Open A Task", "Manage Tasks", "Manage Members", "Back"]
         while True:
-            self.showtasks()
-            print("\n")
-            choice = Menu.Choose(options)
-            if choice == 1:
-                self.task_manager()
-            elif choice == 2:
-                self.change_info()
-            elif choice == 3:
+            choice = Menu.choose(self.__project.name, ls)
+            if choice == ls[0]:
+                task_id = self.choose_task()
+                if task_id != None:
+                    task = self.__project.get_task(task_id)
+                    task_menu = TaskMenu(self.__user,self.__project,task)
+                    task_menu.menu()
+            elif choice == ls[1]:
+                self.manage_tasks()
+            elif choice == ls[2]:
+                self.manage_users()
+            elif choice == ls[3]:
                 break
 
 
@@ -490,54 +532,156 @@ class UserMenu:
     def __init__(self, user) -> None:
         self.__user = user
 
-    @property
-    def user(self):
-        return self.__user
+    def craete_projects_table(self):
+        projects = ProjectController.get_projects(self.__user.username)
+        if not projects:
+            return None
 
-    @user.setter
-    def user(self, user: User):
-        self.user = user
+        table = Table(title="Projects")
+        table.add_column("name")
+        table.add_column("id")
+        table.add_column("leader")
+        for project in projects:
+            table.add_row(project.name, project.id, project.leader)
 
-    def PreviousProjects(self):
+        return table
+
+    def get_project(self):
         while True:
-            projects = ProjectController.get_projects(self.__user.username)
-            project_names = [_project.name for _project in projects]
-            project_names.append("back")
-            size = len(project_names)
-            choice = Menu.Choose(project_names) - 1
 
-            print(choice)
-            if choice == size - 1:
+            table = self.craete_projects_table()
+            if table == None:
+                Menu.prompt("No Projects Available")
+                return
+            Menu.console.clear()
+            Menu.console.print(table, justify="center")
+            id = Menu.console.input("Input An ID (0 to go back): ")
+            if Menu.back(id):
+                return None
+            elif not ProjectController.exists(id, self.__user.username):
+                Menu.prompt("Enter A Valid ID")
+            else:
                 break
-            project_menu = ProjectMenu(self.__user, projects[choice])
-            project_menu.menu()
 
-    def CreateNewProject(self):
-        pass
+        return ProjectController.get_project(self.__user.username, id)
+
+    def create_new_project(self):
+        dic = {"ID": "", "Name": ""}
+        ls = ["Create", "Back"]
+
+        while True:
+            choice = Menu.choose("New Project", dic, ls)
+
+            if choice in list(dic.keys()):
+                inp = Menu.get_info(f"Input {choice}: ")
+                if inp != "":
+                    dic[choice] = inp
+            elif choice == ls[0]:
+                if "" in list(dic.values()):
+                    Menu.prompt("Please Fill All The Fields")
+                elif ProjectController.exists(dic["ID"]):
+                    Menu.prompt("ID Already Exists")
+                elif len(dic["ID"]) < 3:
+                    Menu.prompt("ID Must Be At Least 3 Characters")
+                else:
+                    project = Project(
+                        dic["Name"],
+                        [],
+                        [self.__user.username],
+                        self.__user.username,
+                        dic["ID"],
+                    )
+                    ProjectController.add_project(self.__user.username, project)
+                    break
+            else:
+                break
+
+    def remove_project(self):
+        project: Project
+        while True:
+            project = self.get_project()
+            if project == None:
+                return
+            if project.leader != self.__user.username:
+                Menu.prompt("You Are Not This Project's Leader")
+            else:
+                break
+
+        ProjectController.remove_project(self.__user.username, project)
+
+    def manage_projects(self):
+        while True:
+            options = ["Create A New Project", "Remove A Project", "Back"]
+            choice = Menu.choose("Manage Projects", options)
+            if choice == options[0]:
+                self.create_new_project()
+            elif choice == options[1]:
+                self.remove_project()
+            else:
+                break
 
     def Projects(self):
-        options = ["Previous Projects", "Create A New Project", "Back"]
+        options = ["Open A Project", "Manage Projects", "Back"]
 
         while True:
-            choice = Menu.Choose(options)
-
-            if choice == 1:
-                self.PreviousProjects()
-
-            elif choice == 2:
-                pass
-            elif choice == 3:
+            choice = Menu.choose("Projetcs", options)
+            if choice == options[0]:
+                project = self.get_project()
+                if project != None:
+                    project_menu = ProjectMenu(self.__user, project)
+                    project_menu.menu()
+            elif choice == options[1]:
+                self.manage_projects()
+            elif choice == options[2]:
                 break
 
-    def menu(self):
-        options = ["projects", "change profile", "exit"]
-        while True:
-            choice = Menu.Choose(options)
+    def edit_info(self):
+        dic = {
+            "Username": self.__user.username,
+            "Email": self.__user.email,
+            "Password": self.__user.password,
+        }
 
-            if choice == 1:
-                project = self.Projects()
-                print(project.name)
-            elif choice == 2:
-                pass
-            elif choice == 3:
-                pass
+        ls = ["Confirm", "Back"]
+
+        while True:
+            choice = Menu.choose("Edit Info", dic, ls)
+            if choice in list(dic.keys()):
+                if choice == "Username":
+                    Menu.prompt("Can't Change Your Username")
+                    continue
+
+                inp = Menu.get_info(f"Input a new {choice}: ")
+                if inp != "":
+                    dic[choice] = inp
+
+            elif choice == ls[0]:
+                if UserController.exists(dic["Email"]):
+                    Menu.prompt("Email Already Exists")
+
+                elif not UserController.email_check(dic["Email"]):
+                    Menu.prompt("Please Eneter A Valid Email")
+
+                elif not UserController.password_check(dic["Password"]):
+                    Menu.prompt("Password Must Be At Least 8 characters")
+                else:
+                    break
+            else:
+                return
+
+        self.__user.email = dic["Email"]
+        self.__user.password = dic["Password"]
+        UserController.upadate_user(self.__user)
+
+    def menu(self):
+        ls = ["Projects", "Edit Your Profile", "Sign Out"]
+        while True:
+            choice = Menu.choose(f"{self.__user.username}", ls)
+
+            if choice == ls[0]:
+                self.Projects()
+            elif choice == ls[1]:
+                self.edit_info()
+            elif choice == ls[2]:
+                break
+

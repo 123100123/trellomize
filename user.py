@@ -68,7 +68,7 @@ class UserController:
         if not os.path.exists("users.json"):
             base_dict = {"users": []}
             with open("users.json", "w") as file:
-                json.dump(base_dict, file)
+                json.dump(base_dict, file,indent=2)
 
     @staticmethod
     def get_users() -> list:
@@ -76,14 +76,6 @@ class UserController:
 
         with open("users.json", "r") as file:
             users_data = json.load(file)["users"]
-
-            # users = []
-            # for user_data in users_data:
-
-            #     user_data["projects"] = ProjectController.get_projects(
-            #         user_data["username"]
-            #     )
-            #     users.append(User(**user_data))
             users = [User(**user_data) for user_data in users_data]
             return users
 
@@ -91,8 +83,6 @@ class UserController:
     def save_users(users: list[User]):
 
         data = {"users": [user.get_dict() for user in users]}
-        for user_info in data["users"]:
-            user_info["projects"] = [_project.id for _project in user_info["projects"]]
         with open("users.json", "w") as file:
             json.dump(data, file)
 
@@ -101,7 +91,7 @@ class UserController:
         users = UserController.get_users()
         users.append(user)
         UserController.save_users(users)
-        logger.info(f'User created: {user.__username}')
+        logger.info(f'User created: {user.username}')
         return True
 
     @staticmethod
@@ -131,7 +121,7 @@ class UserController:
     def get_user(info: str) -> bool:
         users: list[User] = UserController.get_users()
         for user in users:
-            if user.username == info or user.username == info:
+            if user.username == info or user.email == info:
                 return user
 
     @staticmethod

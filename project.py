@@ -71,16 +71,16 @@ class Task:
         current = datetime.date.today()
         if second_date == None:
             try:
-                inp = datetime.datetime.strptime(first_date, "%Y-%m-%d")
+                inp = datetime.datetime.strptime(first_date, "%Y-%m-%d").date()
                 return inp >= current
             except:
                 return False
-
+    
         try:
-            inp = datetime.datetime.strptime(first_date, "%Y-%m-%d")
-            inp2 = datetime.datetime.strptime(second_date, "%Y-%m-%d")
+            inp = datetime.datetime.strptime(first_date, "%Y-%m-%d").date()
+            inp2 = datetime.datetime.strptime(second_date, "%Y-%m-%d").date()
 
-            return inp2 > inp
+            return inp2 > inp >= current
         except:
             return False
 
@@ -120,8 +120,8 @@ class Task:
 
     @state.setter
     def state(self, args) -> None:
-        username, new_state = args
-        self.manage_actions(username, f"changed state from {self.__state.name} to {new_state.name}")
+        username,new_state = args
+        self.manage_actions(username,f"changed name from {self.__state} to {new_state}")
         self.__state = new_state
         
     @property
@@ -129,8 +129,8 @@ class Task:
         return self.__starting_date
 
     @starting_date.setter
-    def starting_date(self, args) -> None:
-        username, new_starting_date = args
+    def starting_date(self,args) -> None:
+        username,new_starting_date = args
         self.manage_actions(username, f"starting date changed from {self.__starting_date} to {new_starting_date}")
         self.__starting_date = new_starting_date
 
@@ -140,8 +140,8 @@ class Task:
 
     @ending_date.setter
     def ending_date(self, args) -> None:
-        username, new_ending_date = args
-        self.manage_actions(username, f"ending date changed from {self.__ending_date} to {new_ending_date}")
+        username,new_ending_date = args
+        self.manage_actions(username, f"End date changed from {self.__starting_date} to {new_ending_date}")
         self.__ending_date = new_ending_date
 
     @property
@@ -150,8 +150,8 @@ class Task:
 
     @description.setter
     def description(self, args) -> None:
-        username, new_description = args
-        self.manage_actions(username, f"description changed from {self.__description} to {new_description}")
+        username,new_description = args
+        self.manage_actions(username , f"description changed from {self.__starting_date} to {new_description}")
         self.__description = new_description
 
     @property
@@ -182,21 +182,23 @@ class Task:
             return "The file does not exist."
 
     @property
-    def priority(self) -> int:
+    def priority(self) -> Priority:
         return self.__priority
 
     @priority.setter
-    def priority(self, args) -> None:
-        username, new_priority = args
-        self.manage_actions(username, f"changed priority from {self.__priority} to {new_priority}")
+    def priority(self,args) -> None:
+        username,new_priority = args
+        self.manage_actions(username , f"changed priority from {self.__priority} to {new_priority}")
         self.__priority = new_priority
         
     def add_user(self, adder_username :str ,username: str):
         self.__users.append(username)
         self.manage_actions(adder_username , f"added {username}")
 
-    def remove_user(self, username: str):
-        self.__users.remove(username)
+    def remove_user(self, remover_username,username: str):
+        if username in self.users:
+            self.__users.remove(username)
+            self.manage_actions(remover_username , f"removed {username} from the task")
 
     def get_dict(self):
         dic = {
@@ -252,20 +254,24 @@ class Project:
 
     def remove_user(self, user: str) -> None:
             self.__users.remove(user)
+            for task in self.tasks:
+                task.remove_user(user)
             logger.info(f"{self.leader} removed user {user} from project {self.__id}")
 
-    def get_task(self, task):
-        _index = [_task.id for _task in self.__tasks].index(task.id)
+    def get_task(self, task_id):
+        _index = [_task.id for _task in self.__tasks].index(task_id)
         task = self.__tasks[_index]
         return task
 
     def add_task(self, task) -> None:
         self.__tasks.append(task)
-        logger.info(f"{self.__leader} added {task.id} task")
+        logger.info(f"{self.__leader} added {task} task")
 
-    def remove_task(self, task) -> None:
-        self.__tasks.remove(task)
-        logger.info(f"{self.__leader} removed {task.id} task")
+    def remove_task(self, task:str) -> None:
+        
+        ids = [_task.id for _task in self.__tasks]
+        self.__tasks.pop(ids.index(task))
+        logger.info(f"{self.__leader} removed {task} task")
 
     def get_dict(self):
         dic = {
@@ -285,9 +291,10 @@ class ProjectController:
             base_dict = {"projects": []}
             with open("projects.json", "w") as file:
                 json.dump(base_dict, file)
-
+    
+    
     @staticmethod
-    def get_projects(username):
+    def get_projects(username=None):
         ProjectController.create_base_file()
         "only returns the users' projects"
         projects = []
@@ -295,8 +302,9 @@ class ProjectController:
             data = json.load(file)
             projects_keywords = [{**project} for project in data["projects"]]
             for project_keywords in projects_keywords:
-                if username not in project_keywords["users"]:
-                    continue
+                if username != None: 
+                    if username not in project_keywords["users"]:
+                        continue
                 tasks_data = project_keywords["tasks"]
                 del project_keywords["tasks"]
                 tasks = [Task(**task_data) for task_data in tasks_data]
@@ -316,12 +324,13 @@ class ProjectController:
         projects = ProjectController.get_projects(username)
         projects.append(project)
         ProjectController.save_projects(projects)
-        logger.info(f"Project created: {project.__name} with ID: {project.__id}")
+        logger.info(f"Project created: {project.name} with ID: {project.id}")
 
     @staticmethod
     def remove_project(username, project):
         projects = ProjectController.get_projects(username)
-        projects.remove(project)
+        ids = [_project.id for _project in projects]
+        projects.pop(ids.index(project.id))
         ProjectController.save_projects(projects)
 
     @staticmethod
@@ -340,12 +349,15 @@ class ProjectController:
     def get_project(username, project_id):
         projects = ProjectController.get_projects(username)
         project_ids = [project.id for project in projects]
-        if project_id not in project_ids:
-            return None
 
-        return projects
+        return projects[project_ids.index(project_id)]
 
     @staticmethod
-    def exists(name):
-        projects = ProjectController.get_projects()
-        return any(project.name == name for project in projects)
+    def exists(id,username = None):
+        projects:list[Project]
+        if username ==None:
+            projects = ProjectController.get_projects()
+        else:
+            projects = ProjectController.get_projects(username)
+            
+        return any(project.id == id for project in projects)
