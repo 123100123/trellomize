@@ -3,7 +3,6 @@ from loggerFile import logger
 import logging
 import os
 import json
-from project import ProjectController, Project,Task
 
 logger = logging.getLogger('loggerFile')
 

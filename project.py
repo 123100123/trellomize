@@ -123,7 +123,7 @@ class Task:
     def state(self, args) -> None:
         username,new_state = args
         if new_state != self.__state :
-            self.manage_actions(username,f"changed name from {self.__state} to {new_state}")
+            self.manage_actions(username,f"changed State from {self.__state.name} to {new_state.name}")
             self.__state = new_state
         
     @property
@@ -162,29 +162,37 @@ class Task:
     @property
     def users(self) -> list:
         return self.__users
-
+    
+    
+    def read_file(self,file_name:str):
+        output :str
+        try:
+            with open(f"tasks/{self.__id}/{file_name}.txt", 'r') as file:
+                output = file.read()
+            
+            return output
+        except FileNotFoundError:
+            return f"No {file_name} Available"
+    
+    
+    @property
+    def history(self) -> list:
+        return self.read_file("history")
+    
     @property
     def comments(self) -> list:
-        return self.__comments
+        return self.read_file("comments")
     
     def add_comment(self,username: str,text):
         self.create_base_file()
         date = self.current_date()
         
-        with open(f"tasks/{self.__id}/comment.txt", "a+") as file:
+        with open(f"tasks/{self.__id}/comments.txt", "a+") as file:
             file.write(f"{username}({date}): {text}\n")
           
         self.manage_actions(username , f"Comment added to task {self.__id} -> {text}")
-    
-    @property
-    def read_comments(self) -> str:
-        try:
-            with open(f"tasks/{self.__id}/comment.txt", 'r') as file:
-                comments = file.read()
-            
-            return comments
-        except FileNotFoundError:
-            return "The file does not exist."
+
+        
 
     @property
     def priority(self) -> Priority:
@@ -194,7 +202,7 @@ class Task:
     def priority(self,args) -> None:
         username,new_priority = args
         if new_priority != self.__priority :
-            self.manage_actions(username , f"changed priority from {self.__priority} to {new_priority}")
+            self.manage_actions(username , f"changed priority from {self.__priority.name} to {new_priority.name}")
             self.__priority = new_priority
         
     def add_user(self, adder_username :str ,username: str):
@@ -264,7 +272,7 @@ class Project:
     def remove_user(self, user: str) -> None:
         self.__users.remove(user)
         for task in self.tasks:
-            task.remove_user(user)
+            task.remove_user(self.__leader,user)
         logger.info(f"{self.leader} removed user {user} from project {self.__id}")
 
     def get_task(self, task_id):

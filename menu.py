@@ -1,4 +1,5 @@
-from user import UserController, User, ProjectController, Project, Task
+from user import UserController, User
+from project import Project,ProjectController,Task
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
@@ -292,10 +293,27 @@ class TaskMenu:
                 break
 
     def comments(self):
-        pass
+        options = ["See Comments","Add A comment","Back"]
+        while True:
+            choice = Menu.choose("Comments",options)
+            if choice == options[0]:
+                Menu.console.clear()
+                Menu.console.print(self.__task.comments,justify="center")
+                Menu.getch()
+            elif choice == options[1]:
+                if self.__user.username not in self.__task.users:
+                    Menu.prompt("You Are Not Assigned To This Task")
+                    continue
+                inp = Menu.get_info("Input Your Comment (0 to go back): ")
+                if not Menu.back(inp):
+                    self.__task.add_comment(self.__user.username,inp)
+            else:
+                break
 
     def history(self):
-        pass
+        Menu.console.clear()
+        Menu.console.print(self.__task.history,justify="center")
+        Menu.getch()
 
     def menu(self):
         options = ["Edit Info", "Manage Users", "Comments", "History", "Back"]
@@ -308,9 +326,9 @@ class TaskMenu:
             elif choice == options[1]:
                 self.manage_users()
             elif choice == options[2]:
-                pass
+                self.comments()
             elif choice == options[3]:
-                pass
+                self.history()
             else:
                 break
 
