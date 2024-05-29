@@ -100,16 +100,16 @@ class LoginMenu:
             elif choice == ls[0]:
                 if "" in list(dic.values()):
                     Menu.prompt("Please Fill All The Fields")
-                    
+
                 elif UserController.exists(dic["Username"]):
                     Menu.prompt("Username Already Exists")
-                    
+
                 elif UserController.exists(dic["Email"]):
                     Menu.prompt("Email Already Exists")
-                    
+
                 elif not UserController.email_check(dic["Email"]):
                     Menu.prompt("Please Enter A Valid Email")
-                    
+
                 elif not UserController.password_check(dic["Password"]):
                     Menu.prompt("Password Must Be At Least 8 Characters")
                 else:
@@ -133,6 +133,7 @@ class LoginMenu:
         dic = {"Username/Email": "", "Password": ""}
         ls = ["Login", "Back"]
 
+        user: User
         while True:
             choice = Menu.choose("Login", dic, ls)
             if choice in list(dic.keys()):
@@ -147,12 +148,17 @@ class LoginMenu:
                 elif not cls.check_user(dic["Username/Email"], dic["Password"]):
                     Menu.prompt("Usrname Or Password Incorrect")
                 else:
-                    break
+                    user = UserController.get_user(dic["Username/Email"])
+
+                    if not user.enabled:
+                        Menu.prompt("Unfortunately You Are Currently Suspended")
+                    else:
+                        break
 
             elif choice == ls[1]:
                 return None
 
-        return UserController.get_user(dic["Username/Email"])
+        return user
 
     @classmethod
     def get_user(cls):
@@ -187,15 +193,15 @@ class TaskMenu:
             return
 
         dic = {
-                "Name": self.__task.name,
-                "State": self.__task.state.name,
-                "Priority": self.__task.priority.name,
-                "Starting Date": self.__task.starting_date,
-                "Ending Date": self.__task.ending_date,
-            }
-        
-        ls = ["Update Info","Back"]
-        
+            "Name": self.__task.name,
+            "State": self.__task.state.name,
+            "Priority": self.__task.priority.name,
+            "Starting Date": self.__task.starting_date,
+            "Ending Date": self.__task.ending_date,
+        }
+
+        ls = ["Update Info", "Back"]
+
         while True:
             choice = Menu.choose("New Task", dic, ls)
             if choice in list(dic.keys()):
@@ -228,70 +234,69 @@ class TaskMenu:
                     break
             else:
                 return
-        
-        self.__task.name = (self.__user.username,dic["Name"])
-        self.__task.starting_date = (self.__user.username,dic["Starting Date"])
-        self.__task.ending_date = (self.__user.username,dic["Ending Date"])
-        self.__task.state = (self.__user.username,Task.State[dic["State"]])
-        self.__task.priority = (self.__user.username,Task.Priority[dic["Priority"]])
-        
-        ProjectController.update_project(self.__user.username,self.__project)
-    
+
+        self.__task.name = (self.__user.username, dic["Name"])
+        self.__task.starting_date = (self.__user.username, dic["Starting Date"])
+        self.__task.ending_date = (self.__user.username, dic["Ending Date"])
+        self.__task.state = (self.__user.username, Task.State[dic["State"]])
+        self.__task.priority = (self.__user.username, Task.Priority[dic["Priority"]])
+
+        ProjectController.update_project(self.__user.username, self.__project)
+
     def add_user(self):
-        existing_users = [_user for _user in self.__project.users if _user not in self.__task.users]
+        existing_users = [
+            _user for _user in self.__project.users if _user not in self.__task.users
+        ]
         if not existing_users:
             Menu.prompt("No Users Available To Add")
             return
-        
+
         while True:
-            choice = Menu.choose("Add A New Assignee",existing_users+["Back"])
-            
+            choice = Menu.choose("Add A New Assignee", existing_users + ["Back"])
+
             if choice == "Back":
                 break
-            
-            self.__task.add_user(self.__user.username,choice)
+
+            self.__task.add_user(self.__user.username, choice)
             existing_users.remove(choice)
-            ProjectController.update_project(self.__user.username,self.__project)
-    
+            ProjectController.update_project(self.__user.username, self.__project)
+
     def remove_user(self):
         while True:
-            choice = Menu.choose("Remove Users",self.__task.users+["Back"])
-            
+            choice = Menu.choose("Remove Users", self.__task.users + ["Back"])
+
             if choice == "Back":
                 break
             if choice == self.__project.leader:
                 Menu.prompt("You Can't Remove The Leader")
                 continue
-            
-            self.__task.remove_user(self.__user.username,choice)
-            ProjectController.update_project(self.__user.username,self.__project)
-    
-        
+
+            self.__task.remove_user(self.__user.username, choice)
+            ProjectController.update_project(self.__user.username, self.__project)
+
     def manage_users(self):
         if self.__user.username != self.__project.leader:
             Menu.prompt("You Are Not The Leader Of This Project")
             return
-        
-        options = ["Add A New User","Remove A User","Back"]
-        
+
+        options = ["Add A New User", "Remove A User", "Back"]
+
         while True:
-            choice = Menu.choose("Manage Users",options)
-            
+            choice = Menu.choose("Manage Users", options)
+
             if choice == options[0]:
                 self.add_user()
             elif choice == options[1]:
                 self.remove_user()
             else:
                 break
-        
-    
+
     def comments(self):
         pass
-    
+
     def history(self):
         pass
-    
-    
+
     def menu(self):
         options = ["Edit Info", "Manage Users", "Comments", "History", "Back"]
 
@@ -367,7 +372,7 @@ class ProjectMenu:
         while True:
             table = self.tasks_table()
             Menu.console.clear()
-            Menu.console.print(table,justify= "center")
+            Menu.console.print(table, justify="center")
             if table == None:
                 Menu.prompt("No Tasks In This Project")
                 return None
@@ -453,7 +458,7 @@ class ProjectMenu:
         if self.__project.leader != self.__user.username:
             Menu.prompt("You Are Not The Leader Of This Project")
             return
-        
+
         options = ["Add A New Task", "Remove A Task", "Back"]
         while True:
             choice = Menu.choose("Manage Tasks", options)
@@ -498,6 +503,9 @@ class ProjectMenu:
                     break
 
     def manage_users(self):
+        if self.__user.username != self.__project.leader:
+            Menu.prompt("You Are Not The Leader Of This Project")
+            return
         options = ["Add User", "Remove User", "Back"]
 
         while True:
@@ -518,7 +526,7 @@ class ProjectMenu:
                 task_id = self.choose_task()
                 if task_id != None:
                     task = self.__project.get_task(task_id)
-                    task_menu = TaskMenu(self.__user,self.__project,task)
+                    task_menu = TaskMenu(self.__user, self.__project, task)
                     task_menu.menu()
             elif choice == ls[1]:
                 self.manage_tasks()
@@ -538,9 +546,9 @@ class UserMenu:
             return None
 
         table = Table(title="Projects")
-        table.add_column("name")
-        table.add_column("id")
-        table.add_column("leader")
+        table.add_column("name", justify="center")
+        table.add_column("id", justify="center")
+        table.add_column("leader", justify="center")
         for project in projects:
             table.add_row(project.name, project.id, project.leader)
 
@@ -624,7 +632,7 @@ class UserMenu:
         options = ["Open A Project", "Manage Projects", "Back"]
 
         while True:
-            choice = Menu.choose("Projetcs", options)
+            choice = Menu.choose("Projects", options)
             if choice == options[0]:
                 project = self.get_project()
                 if project != None:
@@ -684,4 +692,3 @@ class UserMenu:
                 self.edit_info()
             elif choice == ls[2]:
                 break
-

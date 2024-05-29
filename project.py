@@ -5,8 +5,8 @@ import os
 import datetime
 import uuid
 import datetime
-import re
 from enum import Enum
+import shutil
 
 logger = logging.getLogger('loggerFile')
 
@@ -277,7 +277,15 @@ class Project:
         logger.info(f"{self.__leader} added {task} task")
 
     def remove_task(self, task:str) -> None:
+        def remove_file():
+            _path = f"./tasks/{task}"
+            print(_path)
+            if os.path.exists(_path):
+                shutil.rmtree(_path)
+        
+        remove_file()
         ids = [_task.id for _task in self.__tasks]
+                
         self.__tasks.pop(ids.index(task))
         logger.info(f"{self.__leader} removed {task} task")
 
@@ -337,6 +345,10 @@ class ProjectController:
     @staticmethod
     def remove_project(username, project):
         projects = ProjectController.get_projects(username)
+        for project in projects:
+            for task in project.tasks:
+                project.remove_task(task.id)
+
         ids = [_project.id for _project in projects]
         projects.pop(ids.index(project.id))
         ProjectController.save_projects(projects)
@@ -356,6 +368,7 @@ class ProjectController:
     @staticmethod
     def get_project(username, project_id):
         projects = ProjectController.get_projects(username)
+        
         project_ids = [project.id for project in projects]
 
         return projects[project_ids.index(project_id)]
