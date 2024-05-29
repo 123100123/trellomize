@@ -19,28 +19,30 @@ class User:
         return self.__username
 
     @username.setter
-    def username(self, new_username: str) -> bool:
-        logger.info(f'Username changed from {self.__username} to {new_username}')
-        self.__username = new_username
+    def username(self, new_username: str) -> None:
+        if new_username != self.__username:
+            logger.info(f'Username changed from {self.__username} to {new_username}')
+            self.__username = new_username
 
     @property
     def password(self) -> str:
         return self.__password
 
     @password.setter
-    def password(self, new_password: str) -> bool:
-        logger.info(f'Password changed for user {self.__username}')
-        self.__password = new_password
-        return True
+    def password(self, new_password: str) -> None:
+        if new_password != self.__password:
+            logger.info(f'Password changed for user {self.__username}')
+            self.__password = new_password
 
     @property
     def email(self) -> str:
         return self.__email
 
     @email.setter
-    def email(self, new_email: str) -> bool:
-        logger.info(f'Email changed for user {self.__username} to {new_email}')
-        self.__email = new_email
+    def email(self, new_email: str) -> None:
+        if new_email != self.__email:
+            logger.info(f'Email changed for user {self.__username} to {new_email}')
+            self.__email = new_email
 
     @property
     def enabled(self):
@@ -48,8 +50,9 @@ class User:
 
     @enabled.setter
     def enabled(self, new_enabled: bool) -> None:
-        logger.info(f'User {self.__username} enabled status changed to {new_enabled}')
-        self.__enabled = new_enabled
+        if new_enabled != self.__enabled:
+            logger.info(f'User {self.__username} enabled status changed to {new_enabled}')
+            self.__enabled = new_enabled
 
     def get_dict(self) -> dict:
         dic = {

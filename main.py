@@ -8,9 +8,6 @@ def main():
         user_menu = UserMenu(user)
         user_menu.menu()
         
-    
-    
-
 if __name__ == "__main__":
     main()
 

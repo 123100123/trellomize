@@ -111,8 +111,9 @@ class Task:
     @name.setter
     def name(self,args) -> None:
         username,new_name = args
-        self.manage_actions(username,f"changed name from {self.__name} to {new_name}")
-        self.__name = new_name
+        if new_name != self.__name :
+            self.manage_actions(username,f"changed name from {self.__name} to {new_name}")
+            self.__name = new_name
 
     @property
     def state(self) -> State:
@@ -121,8 +122,9 @@ class Task:
     @state.setter
     def state(self, args) -> None:
         username,new_state = args
-        self.manage_actions(username,f"changed name from {self.__state} to {new_state}")
-        self.__state = new_state
+        if new_state != self.__state :
+            self.manage_actions(username,f"changed name from {self.__state} to {new_state}")
+            self.__state = new_state
         
     @property
     def starting_date(self) -> str:
@@ -131,8 +133,9 @@ class Task:
     @starting_date.setter
     def starting_date(self,args) -> None:
         username,new_starting_date = args
-        self.manage_actions(username, f"starting date changed from {self.__starting_date} to {new_starting_date}")
-        self.__starting_date = new_starting_date
+        if new_starting_date != self.__starting_date :
+            self.manage_actions(username, f"starting date changed from {self.__starting_date} to {new_starting_date}")
+            self.__starting_date = new_starting_date
 
     @property
     def ending_date(self) -> str:
@@ -141,8 +144,9 @@ class Task:
     @ending_date.setter
     def ending_date(self, args) -> None:
         username,new_ending_date = args
-        self.manage_actions(username, f"End date changed from {self.__starting_date} to {new_ending_date}")
-        self.__ending_date = new_ending_date
+        if new_ending_date != self.__ending_date :
+            self.manage_actions(username, f"End date changed from {self.__starting_date} to {new_ending_date}")
+            self.__ending_date = new_ending_date
 
     @property
     def description(self) -> str:
@@ -151,8 +155,9 @@ class Task:
     @description.setter
     def description(self, args) -> None:
         username,new_description = args
-        self.manage_actions(username , f"description changed from {self.__starting_date} to {new_description}")
-        self.__description = new_description
+        if new_description != self.__description :
+            self.manage_actions(username , f"description changed from {self.__starting_date} to {new_description}")
+            self.__description = new_description
 
     @property
     def users(self) -> list:
@@ -188,12 +193,14 @@ class Task:
     @priority.setter
     def priority(self,args) -> None:
         username,new_priority = args
-        self.manage_actions(username , f"changed priority from {self.__priority} to {new_priority}")
-        self.__priority = new_priority
+        if new_priority != self.__priority :
+            self.manage_actions(username , f"changed priority from {self.__priority} to {new_priority}")
+            self.__priority = new_priority
         
     def add_user(self, adder_username :str ,username: str):
-        self.__users.append(username)
-        self.manage_actions(adder_username , f"added {username}")
+        if username not in self.__users :
+            self.__users.append(username)
+            self.manage_actions(adder_username , f"added {username}")
 
     def remove_user(self, remover_username,username: str):
         if username in self.users:
@@ -249,14 +256,16 @@ class Project:
     def users(self) -> list[str]:
         return self.__users
 
-    def add_user(self, new_user: str) -> bool:
-        self.__users.append(new_user)
+    def add_user(self, new_user: str) -> None:
+        if new_user not in self.__users:
+            self.__users.append(new_user)
+            logger.info(f"{self.leader} removed user {new_user} to project {self.__id}")
 
     def remove_user(self, user: str) -> None:
-            self.__users.remove(user)
-            for task in self.tasks:
-                task.remove_user(user)
-            logger.info(f"{self.leader} removed user {user} from project {self.__id}")
+        self.__users.remove(user)
+        for task in self.tasks:
+            task.remove_user(user)
+        logger.info(f"{self.leader} removed user {user} from project {self.__id}")
 
     def get_task(self, task_id):
         _index = [_task.id for _task in self.__tasks].index(task_id)
@@ -268,7 +277,6 @@ class Project:
         logger.info(f"{self.__leader} added {task} task")
 
     def remove_task(self, task:str) -> None:
-        
         ids = [_task.id for _task in self.__tasks]
         self.__tasks.pop(ids.index(task))
         logger.info(f"{self.__leader} removed {task} task")
