@@ -3,6 +3,7 @@ from loggerFile import logger
 import logging
 import os
 import json
+from encoder import Encoder
 
 logger = logging.getLogger('loggerFile')
 
@@ -78,15 +79,21 @@ class UserController:
 
         with open("users.json", "r") as file:
             users_data = json.load(file)["users"]
+            for user_data in users_data:
+                user_data["password"] = Encoder.decrypt(user_data["password"])
             users = [User(**user_data) for user_data in users_data]
             return users
 
     @staticmethod
     def save_users(users: list[User]):
-
+        for user in users:
+            user.password = Encoder.encrypt(user.password)
         data = {"users": [user.get_dict() for user in users]}
         with open("users.json", "w") as file:
             json.dump(data, file)
+        
+        for user in users:
+            user.password = Encoder.decrypt(user.password)
 
     @staticmethod
     def add_user(user: User) -> bool:
@@ -115,7 +122,7 @@ class UserController:
         return info in usernames or info in emails
 
     @staticmethod
-    def upadate_user(user: str) -> bool:
+    def upadate_user(user: User) -> bool:
         UserController.remove_user(user)
         UserController.add_user(user)
 

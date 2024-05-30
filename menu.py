@@ -1,5 +1,5 @@
 from user import UserController, User
-from project import Project,ProjectController,Task
+from project import Project, ProjectController, Task
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
@@ -147,7 +147,7 @@ class LoginMenu:
                     Menu.prompt("Please Fill All The Fields")
 
                 elif not cls.check_user(dic["Username/Email"], dic["Password"]):
-                    Menu.prompt("Usrname Or Password Incorrect")
+                    Menu.prompt("Credentials Are Incorrect")
                 else:
                     user = UserController.get_user(dic["Username/Email"])
 
@@ -293,12 +293,12 @@ class TaskMenu:
                 break
 
     def comments(self):
-        options = ["See Comments","Add A comment","Back"]
+        options = ["See Comments", "Add A comment", "Back"]
         while True:
-            choice = Menu.choose("Comments",options)
+            choice = Menu.choose("Comments", options)
             if choice == options[0]:
                 Menu.console.clear()
-                Menu.console.print(self.__task.comments,justify="center")
+                Menu.console.print(self.__task.comments, justify="center")
                 Menu.getch()
             elif choice == options[1]:
                 if self.__user.username not in self.__task.users:
@@ -306,13 +306,13 @@ class TaskMenu:
                     continue
                 inp = Menu.get_info("Input Your Comment (0 to go back): ")
                 if not Menu.back(inp):
-                    self.__task.add_comment(self.__user.username,inp)
+                    self.__task.add_comment(self.__user.username, inp)
             else:
                 break
 
     def history(self):
         Menu.console.clear()
-        Menu.console.print(self.__task.history,justify="center")
+        Menu.console.print(self.__task.history, justify="center")
         Menu.getch()
 
     def menu(self):
@@ -682,7 +682,7 @@ class UserMenu:
                     dic[choice] = inp
 
             elif choice == ls[0]:
-                if UserController.exists(dic["Email"]):
+                if UserController.exists(dic["Email"]) and self.__user.email != dic["Email"]:
                     Menu.prompt("Email Already Exists")
 
                 elif not UserController.email_check(dic["Email"]):
