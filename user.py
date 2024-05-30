@@ -57,7 +57,7 @@ class User:
     def get_dict(self) -> dict:
         dic = {
             "username": self.__username,
-            "password": self.__password,
+            "password": Encoder.encrypt(self.__password),
             "email": self.__email,
             "enabled": self.__enabled,
         }
@@ -86,22 +86,17 @@ class UserController:
 
     @staticmethod
     def save_users(users: list[User]):
-        for user in users:
-            user.password = Encoder.encrypt(user.password)
         data = {"users": [user.get_dict() for user in users]}
         with open("users.json", "w") as file:
             json.dump(data, file)
         
-        for user in users:
-            user.password = Encoder.decrypt(user.password)
 
     @staticmethod
-    def add_user(user: User) -> bool:
+    def add_user(user: User) -> None:
         users = UserController.get_users()
         users.append(user)
         UserController.save_users(users)
         logger.info(f'User created: {user.username}')
-        return True
 
     @staticmethod
     def remove_user(user: User) -> bool:
@@ -123,8 +118,13 @@ class UserController:
 
     @staticmethod
     def upadate_user(user: User) -> bool:
-        UserController.remove_user(user)
-        UserController.add_user(user)
+        users = UserController.get_users()
+        for i, _user in enumerate(users):
+            if _user.username == user.username:
+                users[i] = user
+                break
+        
+        UserController.save_users(users)
 
     @staticmethod
     def get_user(info: str) -> bool:
