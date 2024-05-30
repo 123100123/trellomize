@@ -267,7 +267,7 @@ class Project:
     def add_user(self, new_user: str) -> None:
         if new_user not in self.__users:
             self.__users.append(new_user)
-            logger.info(f"{self.leader} removed user {new_user} to project {self.__id}")
+            logger.info(f"{self.leader} added user {new_user} to project {self.__id}")
 
     def remove_user(self, user: str) -> None:
         self.__users.remove(user)

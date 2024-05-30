@@ -4,7 +4,9 @@ from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 import msvcrt
+import logging
 
+logger = logging.getLogger('loggerFile')
 
 class Menu:
     console = Console()
@@ -100,18 +102,23 @@ class LoginMenu:
             elif choice == ls[0]:
                 if "" in list(dic.values()):
                     Menu.prompt("Please Fill All The Fields")
+                    logger.info("Attempted to sign up with incomplete fields.")
 
                 elif UserController.exists(dic["Username"]):
                     Menu.prompt("Username Already Exists")
+                    logger.info(f"Attempted to sign up with an existing username: {dic['Username']}.")
 
                 elif UserController.exists(dic["Email"]):
                     Menu.prompt("Email Already Exists")
+                    logger.info(f"Attempted to sign up with an existing email: {dic['Email']}.")
 
                 elif not UserController.email_check(dic["Email"]):
                     Menu.prompt("Please Enter A Valid Email")
+                    logger.info(f"Attempted to sign up with an invalid email: {dic['Email']}.")
 
                 elif not UserController.password_check(dic["Password"]):
                     Menu.prompt("Password Must Be At Least 8 Characters")
+                    logger.info("Attempted to sign up with a password that is less than 8 characters.")
                 else:
                     break
             elif choice == ls[1]:
@@ -144,14 +151,18 @@ class LoginMenu:
             elif choice == ls[0]:
                 if "" in list(dic.values()):
                     Menu.prompt("Please Fill All The Fields")
+                    logger.info("Attempted to log in with incomplete fields.")
 
                 elif not cls.check_user(dic["Username/Email"], dic["Password"]):
                     Menu.prompt("Credentials Are Incorrect")
+                    logger.info(f"Failed login attempt with username/email: {dic['Username/Email']}.")
+
                 else:
                     user = UserController.get_user(dic["Username/Email"])
 
                     if not user.enabled:
                         Menu.prompt("Unfortunately You Are Currently Suspended")
+                        logger.info(f"Attempted to log in with a suspended account: {dic['Username/Email']}.")
                     else:
                         break
 
@@ -180,7 +191,6 @@ class LoginMenu:
             elif choice == options[2]:
                 return None
 
-
 class TaskMenu:
     def __init__(self, user, project, task) -> None:
         self.__user = user
@@ -190,6 +200,7 @@ class TaskMenu:
     def edit_info(self):
         if self.__user.username not in self.__task.users:
             Menu.prompt("You Are Not Assigned To This Task")
+            logger.info(f"User {self.__user.username} attempted to edit task details without being assigned to the task.")
             return
 
         dic = {
@@ -226,10 +237,12 @@ class TaskMenu:
             elif choice == ls[0]:
                 if dic["Name"] == "":
                     Menu.prompt("Please Input A Name")
+                    logger.info("Attempted to update task info without providing a name.")
                 elif not Task.check_date(dic["Starting Date"]) or not Task.check_date(
                     dic["Starting Date"], dic["Ending Date"]
                 ):
                     Menu.prompt("Please Input Valid Dates")
+                    logger.info("Attempted to update task info with invalid dates.")
                 else:
                     break
             else:
@@ -249,6 +262,7 @@ class TaskMenu:
         ]
         if not existing_users:
             Menu.prompt("No Users Available To Add")
+            logger.info("Attempted to add a user to the task, but no users were available.")
             return
 
         while True:
@@ -269,6 +283,7 @@ class TaskMenu:
                 break
             if choice == self.__project.leader:
                 Menu.prompt("You Can't Remove The Leader")
+                logger.info("Attempted to remove the leader from the task.")
                 continue
 
             self.__task.remove_user(self.__user.username, choice)
@@ -277,6 +292,7 @@ class TaskMenu:
     def manage_users(self):
         if self.__user.username != self.__project.leader:
             Menu.prompt("You Are Not The Leader Of This Project")
+            logger.info(f"User {self.__user.username} attempted to manage users without being the project leader.")
             return
 
         options = ["Add A New User", "Remove A User", "Back"]
@@ -302,6 +318,7 @@ class TaskMenu:
             elif choice == options[1]:
                 if self.__user.username not in self.__task.users:
                     Menu.prompt("You Are Not Assigned To This Task")
+                    logger.info(f"User {self.__user.username} attempted to add comments without being assigned to the task.")
                     continue
                 inp = Menu.get_info("Input Your Comment (0 to go back): ")
                 if not Menu.back(inp):
@@ -330,7 +347,6 @@ class TaskMenu:
                 self.history()
             else:
                 break
-
 
 class ProjectMenu:
     def __init__(self, user, project) -> None:
@@ -392,6 +408,7 @@ class ProjectMenu:
             Menu.console.print(table, justify="center")
             if table == None:
                 Menu.prompt("No Tasks In This Project")
+                logger.info(f"User {self.__user.username} attempted to choose a task, but no tasks were available in the project.")
                 return None
 
             inp = Menu.console.input("Input A Task ID(0 to go back): ")
@@ -399,6 +416,7 @@ class ProjectMenu:
                 break
             elif not inp in [_task.id for _task in self.__project.tasks]:
                 Menu.prompt("Please Enter A Valid ID")
+                logger.info(f"User {self.__user.username} attempted to choose a task with an invalid ID.")
             else:
                 return inp
 
@@ -437,10 +455,12 @@ class ProjectMenu:
             elif choice == ls[0]:
                 if dic["Name"] == "":
                     Menu.prompt("Please Input A Name")
+                    logger.info(f"User {self.__user.username} attempted to create a new task without providing a name.")
                 elif not Task.check_date(dic["Starting Date"]) or not Task.check_date(
                     dic["Starting Date"], dic["Ending Date"]
                 ):
                     Menu.prompt("Please Input Valid Dates")
+                    logger.info(f"User {self.__user.username} attempted to create a new task with invalid dates.")
                 else:
                     break
             else:
@@ -474,6 +494,7 @@ class ProjectMenu:
     def manage_tasks(self):
         if self.__project.leader != self.__user.username:
             Menu.prompt("You Are Not The Leader Of This Project")
+            logger.info(f"User {self.__user.username} attempted to manage tasks without being the project leader.")
             return
 
         options = ["Add A New Task", "Remove A Task", "Back"]
@@ -499,6 +520,7 @@ class ProjectMenu:
                     )
                 else:
                     Menu.prompt("You Can't Remove The Leader")
+                    logger.info(f"User {self.__user.username} attempted to remove the leader from the project.")
             else:
                 break
 
@@ -509,9 +531,11 @@ class ProjectMenu:
                 break
             elif not UserController.exists(inp):
                 Menu.prompt("User Not Found")
+                logger.info(f"User {self.__user.username} attempted to add a user to the project, but the user was not found.")
             else:
                 if inp in self.__project.users:
                     Menu.prompt("User Already In The Project")
+                    logger.info(f"User {self.__user.username} attempted to add a user to the project, but the user was already in the project.")
                 else:
                     self.__project.add_user(inp)
                     ProjectController.update_project(
@@ -522,6 +546,7 @@ class ProjectMenu:
     def manage_users(self):
         if self.__user.username != self.__project.leader:
             Menu.prompt("You Are Not The Leader Of This Project")
+            logger.info(f"User {self.__user.username} attempted to manage users without being the project leader.")
             return
         options = ["Add User", "Remove User", "Back"]
 
@@ -538,6 +563,7 @@ class ProjectMenu:
     def edit_info(self):
         if self.__user.username != self.__project.leader:
             Menu.prompt("You Are Not The Leader Of This Project")
+            logger.info(f"User {self.__user.username} attempted to edit project info without being the project leader.")
             return
         
         dic =  {"ID":self.__project.id, "Name":self.__project.name}
@@ -551,6 +577,7 @@ class ProjectMenu:
                     dic["Name"] = inp
             elif choice == "ID":
                 Menu.prompt("You Can't Change The ID")
+                logger.info(f"User {self.__user.username} attempted to change the ID of the project, which is not allowed.")
             elif choice == ls[0]:
                 break
             else:
@@ -578,7 +605,6 @@ class ProjectMenu:
             else:
                 break
 
-
 class UserMenu:
     def __init__(self, user) -> None:
         self.__user = user
@@ -603,6 +629,7 @@ class UserMenu:
             table = self.craete_projects_table()
             if table == None:
                 Menu.prompt("No Projects Available")
+                logger.info(f"User {self.__user.username} attempted to access a project, but no projects were available.")
                 return
             Menu.console.clear()
             Menu.console.print(table, justify="center")
@@ -611,6 +638,7 @@ class UserMenu:
                 return None
             elif not ProjectController.exists(id, self.__user.username):
                 Menu.prompt("Enter A Valid ID")
+                logger.info(f"User {self.__user.username} attempted to access a project with an invalid ID.")
             else:
                 break
 
@@ -630,10 +658,13 @@ class UserMenu:
             elif choice == ls[0]:
                 if "" in list(dic.values()):
                     Menu.prompt("Please Fill All The Fields")
+                    logger.info(f"User {self.__user.username} attempted to create a new project without filling all the fields.")
                 elif ProjectController.exists(dic["ID"]):
                     Menu.prompt("ID Already Exists")
+                    logger.info(f"User {self.__user.username} attempted to create a new project with an existing ID.")
                 elif len(dic["ID"]) < 3:
                     Menu.prompt("ID Must Be At Least 3 Characters")
+                    logger.info(f"User {self.__user.username} attempted to create a new project with an ID less than 3 characters.")
                 else:
                     project = Project(
                         dic["Name"],
@@ -655,6 +686,7 @@ class UserMenu:
                 return
             if project.leader != self.__user.username:
                 Menu.prompt("You Are Not This Project's Leader")
+                logger.info(f"User {self.__user.username} attempted to remove a project without being the project leader.")
             else:
                 break
 
@@ -700,6 +732,7 @@ class UserMenu:
             if choice in list(dic.keys()):
                 if choice == "Username":
                     Menu.prompt("Can't Change Your Username")
+                    logger.info("Attempted to change username, which is not allowed.")
                     continue
 
                 inp = Menu.get_info(f"Input a new {choice}: ")
@@ -712,12 +745,15 @@ class UserMenu:
                     and self.__user.email != dic["Email"]
                 ):
                     Menu.prompt("Email Already Exists")
+                    logger.info(f"User {self.__user.username} attempted to update email to an existing email.")
 
                 elif not UserController.email_check(dic["Email"]):
                     Menu.prompt("Please Eneter A Valid Email")
+                    logger.info(f"User {self.__user.username} attempted to update email with an invalid email.")
 
                 elif not UserController.password_check(dic["Password"]):
                     Menu.prompt("Password Must Be At Least 8 characters")
+                    logger.info(f"User {self.__user.username} attempted to update password with a password less than 8 characters.")
                 else:
                     break
             else:
