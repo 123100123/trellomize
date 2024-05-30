@@ -3,7 +3,6 @@ from project import Project, ProjectController, Task
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
-from rich.layout import Layout
 import msvcrt
 
 
@@ -535,9 +534,33 @@ class ProjectMenu:
                 self.remove_user()
             else:
                 break
-
+    
+    def edit_info(self):
+        if self.__user.username != self.__project.leader:
+            Menu.prompt("You Are Not The Leader Of This Project")
+            return
+        
+        dic =  {"ID":self.__project.id, "Name":self.__project.name}
+        ls = ["Confirm","Back"]
+        
+        while True:
+            choice = Menu.choose("Edit Info",dic,ls)
+            if choice == "Name":
+                inp = Menu.get_info("Input A New Name: ")
+                if inp != "":
+                    dic["Name"] = inp
+            elif choice == "ID":
+                Menu.prompt("You Can't Change The ID")
+            elif choice == ls[0]:
+                break
+            else:
+                return
+        
+        self.__project.name = dic["Name"]
+        ProjectController.update_project(self.__user.username,self.__project)
+            
     def menu(self):
-        ls = ["Open A Task", "Manage Tasks", "Manage Members", "Back"]
+        ls = ["Open A Task", "Manage Tasks", "Manage Members", "Edit Info", "Back"]
         while True:
             choice = Menu.choose(self.__project.name, ls)
             if choice == ls[0]:
@@ -551,6 +574,8 @@ class ProjectMenu:
             elif choice == ls[2]:
                 self.manage_users()
             elif choice == ls[3]:
+                self.edit_info()
+            else:
                 break
 
 
@@ -682,7 +707,10 @@ class UserMenu:
                     dic[choice] = inp
 
             elif choice == ls[0]:
-                if UserController.exists(dic["Email"]) and self.__user.email != dic["Email"]:
+                if (
+                    UserController.exists(dic["Email"])
+                    and self.__user.email != dic["Email"]
+                ):
                     Menu.prompt("Email Already Exists")
 
                 elif not UserController.email_check(dic["Email"]):
