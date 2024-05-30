@@ -55,6 +55,9 @@ class User:
             self.__enabled = new_enabled
 
     def get_dict(self) -> dict:
+        """
+        Returns a dict of user attrs to be saved as json
+        """
         dic = {
             "username": self.__username,
             "password": Encoder.encrypt(self.__password),
@@ -64,17 +67,22 @@ class User:
         return dic
 
 
-# all the data saving and reading should be encrypted in future
 class UserController:
     @staticmethod
-    def create_base_file():
+    def create_base_file() -> None:
+        """
+        creates user.json if it hasn't been created before
+        """ 
         if not os.path.exists("users.json"):
             base_dict = {"users": []}
             with open("users.json", "w") as file:
                 json.dump(base_dict, file,indent=2)
 
     @staticmethod
-    def get_users() -> list:
+    def get_users() -> list[User]:
+        """
+        reads users.json and returns a list of all user objects
+        """
         UserController.create_base_file()
 
         with open("users.json", "r") as file:
@@ -85,7 +93,10 @@ class UserController:
             return users
 
     @staticmethod
-    def save_users(users: list[User]):
+    def save_users(users: list[User]) -> None:
+        """
+        saves user objects as json
+        """
         data = {"users": [user.get_dict() for user in users]}
         with open("users.json", "w") as file:
             json.dump(data, file)
@@ -93,23 +104,31 @@ class UserController:
 
     @staticmethod
     def add_user(user: User) -> None:
+        """
+        saves a new user to the list of users
+        """
         users = UserController.get_users()
         users.append(user)
         UserController.save_users(users)
         logger.info(f'User created: {user.username}')
 
     @staticmethod
-    def remove_user(user: User) -> bool:
+    def remove_user(user: User) -> None:
+        """
+        removes a new user from the list of users
+        """
         users = UserController.get_users()
         usernames = [_user.username for _user in users]
         if user.username not in usernames:
             return False
         users.pop(usernames.index(user.username))
         UserController.save_users(users)
-        return True
 
     @staticmethod
     def exists(info: str) -> bool:
+        """
+        checks wether a user with the inputed arg exists in saved users
+        """
         users = UserController.get_users()
         usernames = [_user.username for _user in users]
         emails = [_user.email for _user in users]
@@ -117,7 +136,10 @@ class UserController:
         return info in usernames or info in emails
 
     @staticmethod
-    def upadate_user(user: User) -> bool:
+    def upadate_user(user: User) -> None:
+        """
+        updates the entered user in the json file
+        """
         users = UserController.get_users()
         for i, _user in enumerate(users):
             if _user.username == user.username:
@@ -127,7 +149,10 @@ class UserController:
         UserController.save_users(users)
 
     @staticmethod
-    def get_user(info: str) -> bool:
+    def get_user(info: str) -> User:
+        """
+        returns the user with the inputed username/email
+        """
         users: list[User] = UserController.get_users()
         for user in users:
             if user.username == info or user.email == info:
@@ -135,10 +160,16 @@ class UserController:
 
     @staticmethod
     def email_check(email: str) -> bool:
+        """
+        checks wether the email has the correct pattern or not
+        """
         pattern = r"^[a-zA-Z0-9.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$"
 
         return re.match(pattern, email) is not None
 
     @staticmethod
     def password_check(password: str) -> bool:
+        """
+        checks if the input password is of correct form
+        """
         return len(password) >= 8
