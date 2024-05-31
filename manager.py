@@ -39,9 +39,7 @@ def reset():
         
     if os.path.exists("tasks"):
         shutil.rmtree("tasks")
-    
-    if os.path.exists("loggerFile.log"):
-        os.remove("loggerFile.log")
+
 
 def activate_user(username: str):
     if not UserController.exists(username):
