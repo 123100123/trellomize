@@ -347,7 +347,7 @@ class ProjectController:
         projects = ProjectController.get_projects(username)
         projects.append(project)
         ProjectController.save_projects(projects)
-        logger.info(f"Project created: {project.name} with ID: {project.id}")
+        logger.info(f"Project '{project.name}' created with ID: {project.id}")
 
     @staticmethod
     def remove_project(username, project):
@@ -359,7 +359,8 @@ class ProjectController:
         ids = [_project.id for _project in projects]
         projects.pop(ids.index(project.id))
         ProjectController.save_projects(projects)
-
+        logger.info(f"Project '{project.name}' removed with ID: {project.id}")
+        
     @staticmethod
     def update_project(username, project: Project):
         print(username)
