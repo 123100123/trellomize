@@ -1,4 +1,4 @@
-from menu import UserMenu,LoginMenu,Menu
+from menu import UserMenu,LoginMenu
 
 def main():
     while True:
