@@ -1,6 +1,7 @@
 import unittest
 from project import Project, Task
 from user import User
+from encoder import Encoder
 
 class TestProject(unittest.TestCase):
     def setUp(self):
@@ -32,7 +33,7 @@ class TestProject(unittest.TestCase):
 
     def test_remove_task(self):
         self.project.add_task(self.task)
-        self.project.remove_task(self.task)
+        self.project.remove_task(self.task.id)
         self.assertNotIn(self.task, self.project.tasks)
 
     def test_get_dict(self):
@@ -84,16 +85,16 @@ class TestTask(unittest.TestCase):
         self.assertEqual(self.task.description, 'This is a new description')
 
     def test_priority(self):
-        self.task.priority = ('user1', 1)
-        self.assertEqual(self.task.priority, 1)
+        self.task.priority = ('user1', "Low")
+        self.assertEqual(self.task.priority, "Low")
 
     def test_add_comment(self):
         self.task.add_comment('user1', 'This is a comment')
-        comments = self.task.read_comments
+        comments = self.task.comments
         self.assertIn('This is a comment', comments)
 
     def test_read_comments(self):
-        comments = self.task.read_comments
+        comments = self.task.comments
         self.assertIn('This is a comment', comments)
         
     def test_add_user(self):
@@ -102,8 +103,9 @@ class TestTask(unittest.TestCase):
 
     def test_remove_user(self):
         self.task.add_user('user1', 'user3')
-        self.task.remove_user('user3')
+        self.task.remove_user(('user1', 'user3'))
         self.assertNotIn('user3', self.task.users)
+
         
     def test_get_dict(self):
         task_dict = self.task.get_dict()
@@ -146,8 +148,9 @@ class TestUser(unittest.TestCase):
 
     def test_get_dict(self):
         user_dict = self.user.get_dict()
+        decrypted_password = Encoder.decrypt(user_dict['password'])
         self.assertEqual(user_dict['username'], 'user1')
-        self.assertEqual(user_dict['password'], 'password123')
+        self.assertEqual(decrypted_password, 'password123')
         self.assertEqual(user_dict['email'], 'user1@example.com')
         self.assertTrue(user_dict['enabled'])
 

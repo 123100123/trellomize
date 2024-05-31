@@ -54,7 +54,7 @@ class Task:
     def manage_actions(self, username:str, action: str):
         self.create_base_file()
         history_change = f"{username}: {action}"
-        logger_change = f"{username}: {action} in {self.__id} task"
+        logger_change = f"{username}: {action}"
         logger.info(logger_change)
         with open(f"tasks/{self.__id}/history.txt", "a+") as file:
             file.write(history_change+"\n")
@@ -112,7 +112,7 @@ class Task:
     def name(self,args) -> None:
         username,new_name = args
         if new_name != self.__name :
-            self.manage_actions(username,f"changed name from {self.__name} to {new_name}")
+            self.manage_actions(username,f"changed name from '{self.__name}' to '{new_name}'")
             self.__name = new_name
 
     @property
@@ -123,7 +123,7 @@ class Task:
     def state(self, args) -> None:
         username,new_state = args
         if new_state != self.__state :
-            self.manage_actions(username,f"changed State from {self.__state.name} to {new_state.name}")
+            self.manage_actions(username,f"changed State from '{self.__state.name}' to '{new_state.name}'")
             self.__state = new_state
         
     @property
@@ -156,7 +156,7 @@ class Task:
     def description(self, args) -> None:
         username,new_description = args
         if new_description != self.__description :
-            self.manage_actions(username , f"description changed from {self.__starting_date} to {new_description}")
+            self.manage_actions(username , f"description changed from '{self.__description}' to '{new_description}'")
             self.__description = new_description
 
     @property
@@ -190,9 +190,7 @@ class Task:
         with open(f"tasks/{self.__id}/comments.txt", "a+") as file:
             file.write(f"{username}({date}): {text}\n")
           
-        self.manage_actions(username , f"Comment added to task {self.__id} -> {text}")
-
-        
+        self.manage_actions(username , f"Comment added to task {self.__id} -> '{text}'")
 
     @property
     def priority(self) -> Priority:
@@ -202,18 +200,19 @@ class Task:
     def priority(self,args) -> None:
         username,new_priority = args
         if new_priority != self.__priority :
-            self.manage_actions(username , f"changed priority from {self.__priority.name} to {new_priority.name}")
+            self.manage_actions(username , f"changed priority from '{self.__priority.name}' to '{new_priority}'")
             self.__priority = new_priority
         
     def add_user(self, adder_username :str ,username: str):
         if username not in self.__users :
             self.__users.append(username)
-            self.manage_actions(adder_username , f"added {username}")
+            self.manage_actions(adder_username , f"added '{username}'")
 
-    def remove_user(self, remover_username,username: str):
+    def remove_user(self, args):
+        remover_username, username = args
         if username in self.users:
             self.__users.remove(username)
-            self.manage_actions(remover_username , f"removed {username} from the task")
+            self.manage_actions(remover_username , f"removed '{username}' from the task")
 
     def get_dict(self):
         dic = {
@@ -267,13 +266,13 @@ class Project:
     def add_user(self, new_user: str) -> None:
         if new_user not in self.__users:
             self.__users.append(new_user)
-            logger.info(f"{self.leader} added user {new_user} to project {self.__id}")
+            logger.info(f"{self.leader} added user '{new_user}' to project {self.__id}")
 
     def remove_user(self, user: str) -> None:
         self.__users.remove(user)
         for task in self.tasks:
             task.remove_user(self.__leader,user)
-        logger.info(f"{self.leader} removed user {user} from project {self.__id}")
+        logger.info(f"{self.leader} removed user '{user}' from project {self.__id}")
 
     def get_task(self, task_id):
         _index = [_task.id for _task in self.__tasks].index(task_id)
@@ -282,7 +281,7 @@ class Project:
 
     def add_task(self, task) -> None:
         self.__tasks.append(task)
-        logger.info(f"{self.__leader} added {task} task")
+        logger.info(f"{self.__leader} added {task.id} task")
 
     def remove_task(self, task:str) -> None:
         def remove_file():

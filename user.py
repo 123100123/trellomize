@@ -21,7 +21,7 @@ class User:
     @username.setter
     def username(self, new_username: str) -> None:
         if new_username != self.__username:
-            logger.info(f'Username changed from {self.__username} to {new_username}')
+            logger.info(f'Username changed from "{self.__username}" to "{new_username}"')
             self.__username = new_username
 
     @property
@@ -31,7 +31,7 @@ class User:
     @password.setter
     def password(self, new_password: str) -> None:
         if new_password != self.__password:
-            logger.info(f'Password changed for user {self.__username}')
+            logger.info(f'Password changed for user "{self.__username}"')
             self.__password = new_password
 
     @property
@@ -41,7 +41,7 @@ class User:
     @email.setter
     def email(self, new_email: str) -> None:
         if new_email != self.__email:
-            logger.info(f'Email changed for user {self.__username} to {new_email}')
+            logger.info(f'Email changed for user "{self.__username}" to "{new_email}"')
             self.__email = new_email
 
     @property
@@ -51,7 +51,7 @@ class User:
     @enabled.setter
     def enabled(self, new_enabled: bool) -> None:
         if new_enabled != self.__enabled:
-            logger.info(f'User {self.__username} enabled status changed to {new_enabled}')
+            logger.info(f'User "{self.__username}" enabled status changed to "{new_enabled}"')
             self.__enabled = new_enabled
 
     def get_dict(self) -> dict:
