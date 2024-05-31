@@ -14,13 +14,13 @@ class Menu:
     @staticmethod
     def getch():
         char = msvcrt.getch()
-        if char == b"\x00":  # Arrow key prefix
+        if char == b"\x00":  
             char += msvcrt.getch()
             if char == b"\x00H":
                 return "up"
             elif char == b"\x00P":
                 return "down"
-        elif char == b"\r":  # Enter key
+        elif char == b"\r":  
             return "enter"
         else:
             return char
@@ -295,7 +295,7 @@ class TaskMenu:
             logger.warning(f"User '{self.__user.username}' attempted to manage users without being the project leader.")
             return
 
-        options = ["Add A New User", "Remove A User", "Back"]
+        options = ["Assign To A Member Of The Project", "Remove An Assignee", "Back"]
 
         while True:
             choice = Menu.choose("Manage Users", options)
@@ -332,7 +332,7 @@ class TaskMenu:
         Menu.getch()
 
     def menu(self):
-        options = ["Edit Info", "Manage Users", "Comments", "History", "Back"]
+        options = ["Edit Info", "Manage Assignees", "Comments", "History", "Back"]
 
         while True:
             choice = Menu.choose(self.__task.name, options)
@@ -548,10 +548,10 @@ class ProjectMenu:
             Menu.prompt("You Are Not The Leader Of This Project")
             logger.warning(f"User '{self.__user.username}' attempted to manage users without being the project leader.")
             return
-        options = ["Add User", "Remove User", "Back"]
+        options = ["Add A New Member", "Remove A Member", "Back"]
 
         while True:
-            choice = Menu.choose("Manage Users", options)
+            choice = Menu.choose("Manage Members", options)
 
             if choice == options[0]:
                 self.add_user()
@@ -761,7 +761,7 @@ class UserMenu:
 
         self.__user.email = dic["Email"]
         self.__user.password = dic["Password"]
-        UserController.upadate_user(self.__user)
+        UserController.update_user(self.__user)
 
     def menu(self):
         ls = ["Projects", "Edit Your Profile", "Sign Out"]

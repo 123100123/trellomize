@@ -62,14 +62,13 @@ parser.add_argument("action", type=str, choices=["create-admin", "purge-data", "
 parser.add_argument("--username", type=str, required=True, help="Username for authentication or action")
 parser.add_argument("--password", type=str, required=True, help="Password for authentication or action")
 
-# Parse the initial arguments to determine the action
+
 args, remaining_args = parser.parse_known_args()
 
-# Additional arguments for specific actions
+
 if args.action in ["activate-user", "deactivate-user"]:
     parser.add_argument("--user", type=str, required=True, help="Defines the username of the user to activate/deactivate")
 
-# Parse the remaining arguments
 args = parser.parse_args()
 
 if args.action != "create-admin":
@@ -78,7 +77,9 @@ if args.action != "create-admin":
 if args.action == "create-admin":
     create_admin(args.username, args.password)
 elif args.action == "purge-data":
-    reset()
+    confirm = input("Are You Sure?(Y/N): ")
+    if confirm == "Y" or confirm == "y":
+        reset()
 elif args.action == "activate-user":
     activate_user(args.user)
 elif args.action == "deactivate-user":

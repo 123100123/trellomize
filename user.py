@@ -136,7 +136,7 @@ class UserController:
         return info in usernames or info in emails
 
     @staticmethod
-    def upadate_user(user: User) -> None:
+    def update_user(user: User) -> None:
         """
         updates the entered user in the json file
         """
