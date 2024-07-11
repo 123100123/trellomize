@@ -165,15 +165,12 @@ class Task:
     
     
     def read_file(self,file_name:str):
-        output :str
         try:
-            with open(f"tasks/{self.__id}/{file_name}.txt", 'r') as file:
-                output = file.read()
-            
+            with open(f"tasks/{self.__id}/{file_name}.txt", "r") as file:
+                output= file.read()
             return output
-        except FileNotFoundError:
-            return f"No {file_name} Available"
-    
+        except FileNotFoundError :
+            return f"No {file_name} Available For This Task"
     
     @property
     def history(self) -> list:
@@ -338,10 +335,9 @@ class ProjectController:
 
     @staticmethod
     def save_projects(projects):
-        with open("projects.json", "w") as file:
-            data = {"projects": [project.get_dict() for project in projects]}
-            json.dump(data, file)
-
+        with open("projects.json","w") as file:
+            dic = {"projects": [project.get_dict() for project in projects]}
+            json.dump(dic,file)
     @staticmethod
     def add_project(username, project):
         projects = ProjectController.get_projects(username)

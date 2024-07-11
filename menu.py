@@ -237,7 +237,7 @@ class TaskMenu:
         self.__project = project
         self.__task: Task = task
         self.__panel: Panel = Panel(
-            f"Name: {self.__task.name}\nPriority: {self.__task.priority.name}\nState: {self.__task.state.name}\nUsers: {self.__task.users}\nStarting Date: {self.__task.starting_date}\nEnding Date; {self.__task.ending_date}\nDescription: {self.__task.description}",
+            f"Name: {self.__task.name}\nPriority: {self.__task.priority.name}\nState: {self.__task.state.name}\nAssignees: {self.__task.users}\nStarting Date: {self.__task.starting_date}\nEnding Date; {self.__task.ending_date}\nDescription: {self.__task.description}",
             title="Task Info",
             expand=False,
         )
@@ -343,12 +343,8 @@ class TaskMenu:
 
             if choice == "Back":
                 break
-            if choice == self.__project.leader:
-                Menu.prompt("You Can't Remove The Leader")
-                logger.warning("Attempted to remove the leader from the task.")
-                continue
 
-            self.__task.remove_user(self.__user.username, choice)
+            self.__task.remove_user((self.__user.username,choice))
             ProjectController.update_project(self.__user.username, self.__project)
             self.update_panel()
 
@@ -569,8 +565,6 @@ class ProjectMenu:
 
     def remove_task(self):
         task_id = self.choose_task()
-        print(task_id)
-        Menu.getch()
         if task_id == None:
             return
 
