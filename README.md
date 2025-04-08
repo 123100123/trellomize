@@ -1,6 +1,4 @@
 
----
-
 ### **Trello-Style Task Manager (Python)**  
 **Repository:** [TrelloClone-Py](https://github.com/123100123/trellomize)  
 
